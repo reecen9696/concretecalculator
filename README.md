@@ -62,25 +62,36 @@ addresses) must NOT have the prefix.
 
 ```
 ┌──────────────────────────────────────────────┐
-│  Static SPA (Vite + React + TS + Tailwind)   │
+│  Static SPA (Vite + React + TS)              │
 │  - all form state + step routing             │
 │  - eligibility branching                     │
 │  - pricing calc (ported from pricing_engine) │
 │  - HUM bracket + optimisation                │
-│  - solid-dark UI w/ Framer Motion            │
-└──────────────────────┬───────────────────────┘
-                       │ POST /api/submit
-                       ▼
-┌──────────────────────────────────────────────┐
-│  api/submit.ts  — single Vercel function     │
-│  - Zod-validates POST body                   │
-│  - branches on outcome (eligible / rejected) │
-│  - Resend → Luke (+ customer on rejected)    │
-└──────────────────────────────────────────────┘
+│  - flat utilitarian dark UI (matches         │
+│    originalcalc/frontend/index.html)         │
+└─────────┬────────────────┬───────────────────┘
+          │                │
+          │ POST           │ POST + signed upload
+          │ /api/submit    │ /api/upload-url
+          ▼                ▼
+┌──────────────────────────┐ ┌────────────────────┐
+│  api/submit.ts           │ │  api/upload-url.ts │
+│  - Zod-validates body    │ │  - Mints Vercel    │
+│  - branches on outcome   │ │    Blob upload     │
+│  - Resend → Luke (+      │ │    tokens (10MB,   │
+│    customer on rejected) │ │    image/pdf only) │
+└──────────────────────────┘ └────────────────────┘
+                                       │
+                                       ▼
+                              ┌────────────────────┐
+                              │  Vercel Blob       │
+                              │  inquiries/{date}/ │
+                              │    plans/          │
+                              │    photos/         │
+                              └────────────────────┘
 ```
 
-No database. No file storage. No photo upload in v1. Luke's inbox is the audit
-trail.
+No database. No CRM. Luke's inbox is the audit trail; Blob is the file store.
 
 ## Where the code lives
 
@@ -92,16 +103,17 @@ src/
 │   ├── format.ts           # banker's-rounding currency formatter
 │   ├── eligibility.ts      # placeholder rule — TODO Monday
 │   ├── submit.ts           # typed fetch wrapper for /api/submit
-│   └── cn.ts               # Tailwind class merger
+│   └── upload.ts           # client wrapper around @vercel/blob `upload`
 ├── state/useFormStore.ts   # Zustand store + step router + validation
 ├── types/form.ts           # form / eligibility / submission payload types
 ├── components/
-│   ├── Shell.tsx           # outer card chrome
-│   ├── ProgressBar.tsx
-│   ├── steps/              # 7 input steps + estimate + rejected screen
-│   └── ui/                 # Button, TextField, Textarea, OptionCard
+│   ├── Shell.tsx           # outer container
+│   ├── ProgressBar.tsx     # CSS-transition progress
+│   ├── steps/              # 9 input steps + estimate + rejected screen
+│   └── ui/                 # RadioRow, Field, TextAreaField, FileUpload
 api/
-├── submit.ts               # the function
+├── submit.ts               # inquiry email function
+├── upload-url.ts           # Vercel Blob client-direct upload tokens
 └── emails.ts               # HTML email builders
 scripts/
 ├── pricing-parity.ts            # TS reference printer

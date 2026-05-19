@@ -2,7 +2,7 @@
  * Dump rendered email HTML to /tmp so I can eyeball it.
  *
  *     npx tsx scripts/render-email-preview.ts
- *     open /tmp/email-{eligible,via-email,rejected-luke,rejected-customer}.html
+ *     open /tmp/email-{eligible,plans-only,rejected-luke,rejected-customer}.html
  */
 
 import { writeFileSync } from "node:fs";
@@ -11,6 +11,19 @@ import {
   buildLukeRejectionEmail,
   buildCustomerRejectionEmail,
 } from "../api/emails";
+
+const SAMPLE_PHOTO = {
+  url: "https://placehold.co/600x400/333/fff?text=Street+View",
+  filename: "street-view.jpg",
+  contentType: "image/jpeg",
+  size: 482104,
+};
+const SAMPLE_PLAN = {
+  url: "https://placehold.co/600x400/444/fff?text=Site+Plan.pdf",
+  filename: "site-plan.pdf",
+  contentType: "application/pdf",
+  size: 1294821,
+};
 
 const eligibleWithEstimate = {
   outcome: "eligible" as const,
@@ -34,6 +47,8 @@ const eligibleWithEstimate = {
     slope: "flat_minimal" as const,
     drainage: "no" as const,
   },
+  plans: [],
+  photos: [SAMPLE_PHOTO, { ...SAMPLE_PHOTO, filename: "garage-view.jpg" }],
   estimate: {
     finalIncGst: 16764.2,
     financeAdjustedExGst: 15240.19,
@@ -74,12 +89,12 @@ const eligibleWithEstimate = {
   },
 };
 
-const eligibleViaEmail = {
+const eligiblePlansOnly = {
   outcome: "eligible" as const,
   customer: {
-    name: "Pending Customer",
+    name: "Plans Customer",
     phone: "0400 999 888",
-    email: "pending@example.com",
+    email: "plans@example.com",
     suburb: "Brunswick VIC 3056",
   },
   eligibility: {
@@ -90,14 +105,15 @@ const eligibleViaEmail = {
   },
   project: {
     areaSqm: 0,
-    areaMethod: "via_email" as const,
-    emailNote: "Roughly 3 car spaces wide, slight curve at the top.\nGarage at end of long approach.",
+    areaMethod: "plans" as const,
     finish: "coloured" as const,
     hasRemoval: true,
     slope: "moderately_steep" as const,
     drainage: "yes" as const,
     stripDrainLengthM: 5,
   },
+  plans: [SAMPLE_PLAN],
+  photos: [SAMPLE_PHOTO],
 };
 
 const rejected = {
@@ -117,9 +133,23 @@ const rejected = {
   failedCriteria: ["Bankruptcy declared in the last 5 years."],
 };
 
-writeFileSync("/tmp/email-eligible.html", buildLukeInquiryEmail(eligibleWithEstimate));
-writeFileSync("/tmp/email-via-email.html", buildLukeInquiryEmail(eligibleViaEmail));
-writeFileSync("/tmp/email-rejected-luke.html", buildLukeRejectionEmail(rejected));
-writeFileSync("/tmp/email-rejected-customer.html", buildCustomerRejectionEmail(rejected));
+writeFileSync(
+  "/tmp/email-eligible.html",
+  buildLukeInquiryEmail(eligibleWithEstimate),
+);
+writeFileSync(
+  "/tmp/email-plans-only.html",
+  buildLukeInquiryEmail(eligiblePlansOnly),
+);
+writeFileSync(
+  "/tmp/email-rejected-luke.html",
+  buildLukeRejectionEmail(rejected),
+);
+writeFileSync(
+  "/tmp/email-rejected-customer.html",
+  buildCustomerRejectionEmail(rejected),
+);
 
-console.log("Rendered to /tmp/email-{eligible,via-email,rejected-luke,rejected-customer}.html");
+console.log(
+  "Rendered to /tmp/email-{eligible,plans-only,rejected-luke,rejected-customer}.html",
+);

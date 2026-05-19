@@ -50,11 +50,10 @@ const eligibilitySchema = z.object({
 
 const projectSchema = z.object({
   areaSqm: z.number().nonnegative(),
-  areaMethod: z.enum(["total", "sections", "via_email"]),
+  areaMethod: z.enum(["total", "sections", "plans"]),
   areaSections: z
     .array(z.object({ length: z.number(), width: z.number() }))
     .optional(),
-  emailNote: z.string().max(500).optional(),
   finish: z.enum([
     "natural_grey",
     "coloured",
@@ -65,6 +64,13 @@ const projectSchema = z.object({
   slope: z.enum(["flat_minimal", "moderately_steep", "extremely_steep"]),
   drainage: z.enum(["no", "yes", "unsure"]),
   stripDrainLengthM: z.number().optional(),
+});
+
+const uploadedFileSchema = z.object({
+  url: z.string().url(),
+  filename: z.string().max(255),
+  contentType: z.string().max(100),
+  size: z.number().nonnegative(),
 });
 
 const estimateSchema = z
@@ -116,7 +122,9 @@ const payloadSchema = z.discriminatedUnion("outcome", [
     customer: customerSchema,
     eligibility: eligibilitySchema,
     project: projectSchema,
-    estimate: estimateSchema.optional(), // absent for via_email path
+    plans: z.array(uploadedFileSchema).optional().default([]),
+    photos: z.array(uploadedFileSchema).optional().default([]),
+    estimate: estimateSchema.optional(),
   }),
   z.object({
     outcome: z.literal("rejected"),

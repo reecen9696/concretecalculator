@@ -1,10 +1,7 @@
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useFormStore, validateStep } from "@/state/useFormStore";
+import { useEffect, useState } from "react";
+import { useFormStore, validateStep, STEP_ORDER } from "@/state/useFormStore";
 import { Shell } from "@/components/Shell";
 import { ProgressBar } from "@/components/ProgressBar";
-import { Button } from "@/components/ui/Button";
 import { CustomerDetailsStep } from "@/components/steps/CustomerDetailsStep";
 import { EligibilityStep } from "@/components/steps/EligibilityStep";
 import { AreaStep } from "@/components/steps/AreaStep";
@@ -12,17 +9,19 @@ import { FinishStep } from "@/components/steps/FinishStep";
 import { RemovalStep } from "@/components/steps/RemovalStep";
 import { SlopeStep } from "@/components/steps/SlopeStep";
 import { DrainageStep } from "@/components/steps/DrainageStep";
+import { PhotosStep } from "@/components/steps/PhotosStep";
 import { EstimateStep } from "@/components/steps/EstimateStep";
 import { RejectedScreen } from "@/components/steps/outcomes/RejectedScreen";
 
-const STEP_TRANSITION = {
-  duration: 0.3,
-  ease: [0.22, 1, 0.36, 1] as const,
-};
-
 export default function App() {
   const state = useFormStore();
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<string[]>([]);
+
+  // Clear errors + scroll to top whenever the step changes.
+  useEffect(() => {
+    setErrors([]);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [state.step]);
 
   const handleNext = () => {
     const v = validateStep(state);
@@ -30,119 +29,99 @@ export default function App() {
       setErrors(v.errors);
       return;
     }
-    setErrors({});
+    setErrors([]);
     state.next();
   };
   const handleBack = () => {
-    setErrors({});
+    setErrors([]);
     state.back();
   };
 
-  const isOutcome = state.step === "rejected";
+  const isRejected = state.step === "rejected";
   const isEstimate = state.step === "estimate";
-
-  const nextLabel =
-    state.step === "drainage" ? "See estimate" : "Continue";
 
   return (
     <Shell>
-      {!isOutcome && <ProgressBar />}
+      {!isRejected && <ProgressBar />}
 
-      <div className="relative">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={state.step}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={STEP_TRANSITION}
-          >
-            {renderStep(state.step, errors)}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+      {errors.length > 0 && (
+        <div className="error-message">
+          <strong>Please fix the following:</strong>
+          <ul>
+            {errors.map((e, i) => (
+              <li key={i}>{e}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-      {/* Navigation: hidden on outcome screens (rejected) and on the
-          estimate step's success state (which manages its own CTA). */}
-      {!isOutcome && !isEstimate && (
-        <div className="mt-5 flex gap-2">
-          {state.step !== "customer" && (
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={handleBack}
-              leftIcon={<ArrowLeft size={14} />}
-              className="flex-none px-3"
-              aria-label="Go back"
-            >
-              Back
-            </Button>
+      <StepView />
+
+      {/* Navigation rows */}
+      {!isRejected && !isEstimate && (
+        <div className="btn-row">
+          {state.step !== "customer" ? (
+            <button type="button" className="btn btn-secondary" onClick={handleBack}>
+              ← Back
+            </button>
+          ) : (
+            <span style={{ flex: 1 }} />
           )}
-          <Button
-            size="lg"
-            onClick={handleNext}
-            rightIcon={<ArrowRight size={14} />}
-            className="flex-1"
-          >
-            {nextLabel}
-          </Button>
+          <button type="button" className="btn btn-primary" onClick={handleNext}>
+            {state.step === "photos" ? "See estimate →" : "Next →"}
+          </button>
         </div>
       )}
 
-      {/* Estimate step: only show a Back link, the proceed CTA is in-step. */}
       {isEstimate && (
-        <div className="mt-3 flex justify-start">
-          <Button
-            variant="ghost"
-            size="md"
-            onClick={handleBack}
-            leftIcon={<ArrowLeft size={14} />}
-            className="-ml-1"
-          >
-            Back
-          </Button>
+        <div className="btn-row">
+          <button type="button" className="btn btn-secondary" onClick={handleBack}>
+            ← Back
+          </button>
         </div>
       )}
 
-      {/* Rejected screen: allow Back to revise eligibility answers. */}
-      {isOutcome && (
-        <div className="mt-3 flex justify-start">
-          <Button
-            variant="ghost"
-            size="md"
-            onClick={handleBack}
-            leftIcon={<ArrowLeft size={14} />}
-            className="-ml-1"
-          >
-            Revise answers
-          </Button>
+      {isRejected && (
+        <div className="btn-row">
+          <button type="button" className="btn btn-secondary" onClick={handleBack}>
+            ← Revise answers
+          </button>
         </div>
       )}
     </Shell>
   );
 }
 
-function renderStep(step: string, errors: Record<string, string>) {
+function StepView() {
+  const step = useFormStore((s) => s.step);
+  // Key on step so the CSS fadeIn animation re-fires on each transition.
   switch (step) {
     case "customer":
-      return <CustomerDetailsStep errors={errors} />;
+      return <CustomerDetailsStep key={step} />;
     case "eligibility":
-      return <EligibilityStep errors={errors} />;
+      return <EligibilityStep key={step} />;
     case "area":
-      return <AreaStep errors={errors} />;
+      return <AreaStep key={step} />;
     case "finish":
-      return <FinishStep errors={errors} />;
+      return <FinishStep key={step} />;
     case "removal":
-      return <RemovalStep errors={errors} />;
+      return <RemovalStep key={step} />;
     case "slope":
-      return <SlopeStep errors={errors} />;
+      return <SlopeStep key={step} />;
     case "drainage":
-      return <DrainageStep errors={errors} />;
+      return <DrainageStep key={step} />;
+    case "photos":
+      return <PhotosStep key={step} />;
     case "estimate":
-      return <EstimateStep />;
+      return <EstimateStep key={step} />;
     case "rejected":
-      return <RejectedScreen />;
+      return <RejectedScreen key={step} />;
     default:
+      // exhaustive switch sentinel — keep STEP_ORDER updated
+      void (step satisfies never);
       return null;
   }
 }
+
+// Re-export STEP_ORDER so build-time tooling can see it (unused at runtime here).
+export { STEP_ORDER };

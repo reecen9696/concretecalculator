@@ -129,13 +129,13 @@ async function run(label: string, payload: unknown, method = "POST") {
     },
   });
 
-  // 5. Valid eligible (via_email — no estimate)
-  await run("Valid eligible (via_email, no estimate)", {
+  // 5. Valid eligible (plans path — area_sqm = 0, plans + photos attached)
+  await run("Valid eligible (plans path with attachments)", {
     outcome: "eligible",
     customer: {
-      name: "Pending Measurements",
+      name: "Plans Customer",
       phone: "0400 999 888",
-      email: "pending@example.com",
+      email: "plans@example.com",
       suburb: "Brunswick VIC 3056",
     },
     eligibility: {
@@ -146,13 +146,28 @@ async function run(label: string, payload: unknown, method = "POST") {
     },
     project: {
       areaSqm: 0,
-      areaMethod: "via_email",
-      emailNote: "Roughly 3 car spaces wide, slight curve.",
+      areaMethod: "plans",
       finish: "coloured",
       hasRemoval: true,
       slope: "moderately_steep",
       drainage: "yes",
       stripDrainLengthM: 5,
     },
+    plans: [
+      {
+        url: "https://example.blob.vercel-storage.com/plans/site-plan.pdf",
+        filename: "site-plan.pdf",
+        contentType: "application/pdf",
+        size: 1234567,
+      },
+    ],
+    photos: [
+      {
+        url: "https://example.blob.vercel-storage.com/photos/street.jpg",
+        filename: "street.jpg",
+        contentType: "image/jpeg",
+        size: 482104,
+      },
+    ],
   });
 })();

@@ -11,7 +11,7 @@ resolved.**
   Files:
   - `src/components/steps/EligibilityStep.tsx:1` — placeholder questions + UI
   - `src/lib/eligibility.ts:1` — placeholder rule body
-  - `src/types/form.ts:36` — placeholder enum values (`ResidencyAnswer`,
+  - `src/types/form.ts` — placeholder enum values (`ResidencyAnswer`,
     `IncomeBand`, `EmploymentStatus`, `BankruptcyAnswer`)
   Action: replace placeholder questions and answer enums with Luke's
   documented HUM Finance criteria; update `evaluateEligibility()` rule.
@@ -25,14 +25,13 @@ resolved.**
   with Luke's confirmed partner-referral URL.
 
 - [ ] **Customer rejection email copy**
-  File: `api/submit.ts` — `buildCustomerRejectionEmail()` (added in build
-  step e; reference will be a `// TODO(monday): replace copy` comment above
-  the template string).
+  File: `api/emails.ts` → `buildCustomerRejectionEmail()`. Comment marked
+  `TODO(monday): Replace this placeholder body with Luke's exact final copy`.
   Action: replace placeholder body with Luke's exact copy and contact phone
   number.
 
 - [ ] **Luke's inquiry email format (verify on first send)**
-  File: `api/submit.ts` — `buildLukeInquiryEmail()` (build step e).
+  File: `api/emails.ts` → `buildLukeInquiryEmail()`.
   Action: send a test inquiry, ask Luke if the layout matches what he's used
   to from the original calculator. Adjust HTML structure if he wants changes.
 
@@ -44,19 +43,17 @@ resolved.**
   Action: once DNS access to `smoothconcrete.com.au` is sorted, verify the
   domain in Resend, then update `SENDER_EMAIL` in Vercel env vars.
 
-## v1.1 (deferred features, not blocking ship)
-
-- [ ] **Photo upload** — original calculator accepted up to 5 photos. Removed
-  from v1 (no file storage). If Luke needs photos for a lead he requests
-  them via reply to the inquiry email. Re-add in v1.1 if friction emerges.
-  Reference: `README.md:42` ("No photo upload step in v1.")
+- [ ] **Vercel Blob enabled on project**
+  Action: in Vercel dashboard → Project → Storage → Connect Store → Blob.
+  Without this, the "I'll upload plans or photos" option at the area step
+  and the photos step both fail with 503 errors.
 
 ## Cosmetic / non-blocking
 
 - [ ] **Unused `humOptimization.onlyWhenClose` config field** — present in
   the original `pricing.yaml`, never read by the engine. Ported verbatim to
-  `src/config/pricing.ts:101` for structural parity. Decide whether to
-  remove or actually wire it up.
+  `src/config/pricing.ts` for structural parity. Decide whether to remove
+  or actually wire it up.
 
 ## How to update this file
 

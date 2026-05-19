@@ -2,24 +2,454 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =============================================================================
+   Colour + size tokens — mirror originalcalc/frontend/index.html CSS vars
+   ============================================================================= */
+
+:root {
+  --primary: #ff6600;
+  --secondary: #ff8833;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --dark: #1a1a1a;
+  --text-light: #ffffff;
+  --text-secondary: #cccccc;
+  --border: #333333;
+  --bg: #222222;
+  --input-bg: #333333;
+  --input-bg-hover: #404040;
+}
+
 @layer base {
+  * {
+    box-sizing: border-box;
+  }
   html,
   body,
   #root {
     height: 100%;
   }
-
   body {
-    background: #141414;
-    color: #f5f5f5;
+    font-family:
+      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+      Arial, sans-serif;
+    background: var(--dark);
+    color: var(--text-light);
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-      "Helvetica Neue", Arial, sans-serif;
   }
 
-  /* Tabular-nums for any element marked `.tnum` — used on currency */
+  /* Tabular nums for any element marked .tnum — used on currency */
   .tnum {
     font-variant-numeric: tabular-nums;
+  }
+}
+
+/* =============================================================================
+   Form chrome — match original's flat utilitarian look
+   ============================================================================= */
+
+@layer components {
+  .container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  /* Step header (centered orange title + grey subtitle) */
+  .form-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px 0 0 0;
+  }
+  .form-header h1 {
+    font-size: 28px;
+    color: var(--primary);
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .form-header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 30px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.3s ease;
+  }
+
+  /* Step section reveal */
+  .form-section {
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .form-section h2 {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: var(--primary);
+  }
+  .form-section h3 {
+    font-size: 14px;
+    color: var(--primary);
+    margin-bottom: 12px;
+  }
+
+  /* Form groups */
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-group > label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .form-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  /* Inputs */
+  .field {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 16px;
+    font-family: inherit;
+    background: var(--input-bg);
+    color: var(--text-light);
+    transition: border-color 0.2s ease;
+  }
+  .field::placeholder {
+    color: #888;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.2);
+  }
+
+  /* Radio rows — flat bordered row, hover lifts to orange, selected
+     surfaces orange-text bold (matches original exactly). */
+  .radio-row {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--input-bg);
+    margin-bottom: 10px;
+  }
+  .radio-row:hover {
+    background: var(--input-bg-hover);
+    border-color: var(--primary);
+  }
+  .radio-row input[type="radio"],
+  .radio-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 12px;
+    accent-color: var(--primary);
+    cursor: pointer;
+    flex: none;
+  }
+  .radio-row .label-body {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-light);
+    font-size: 14px;
+  }
+  .radio-row .label-body strong {
+    font-weight: 600;
+  }
+  .radio-row .label-body small {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+  /* Selected — radio-row gets .selected class when the underlying input
+     is checked (we toggle it from React; can't rely on :has() everywhere). */
+  .radio-row.selected .label-body,
+  .radio-row.selected .label-body strong {
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  /* Buttons */
+  .btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: white;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--primary);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+  }
+  .btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  .btn-secondary {
+    background: #444;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: #555;
+  }
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 30px;
+  }
+
+  /* Error box (single combined message at top of step) */
+  .error-message {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--danger);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 20px;
+    color: #ff6b6b;
+    font-size: 14px;
+  }
+  .error-message ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 8px;
+  }
+  .error-message li {
+    padding: 4px 0;
+  }
+  .error-message li:before {
+    content: "• ";
+    margin-right: 6px;
+  }
+
+  /* Area-card (for section measurements) */
+  .area-card {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 12px;
+  }
+  .area-card h4 {
+    color: var(--text-light);
+    font-size: 13px;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .area-card .area-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .area-card .area-grid label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .area-card .area-grid input {
+    width: 100%;
+    padding: 8px;
+    background: var(--input-bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-light);
+    font-size: 14px;
+  }
+  .area-card .area-grid input:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  .area-calculated {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 8px 0;
+  }
+  .area-calculated strong {
+    color: var(--primary);
+  }
+  .area-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .btn-remove-area {
+    background: #555;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .btn-remove-area:hover {
+    background: #666;
+  }
+
+  /* File upload widget */
+  .file-upload {
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--input-bg);
+    color: var(--text-secondary);
+  }
+  .file-upload:hover {
+    border-color: var(--primary);
+    background: var(--input-bg-hover);
+  }
+  .file-upload .icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+  }
+  .file-upload .text {
+    font-size: 14px;
+  }
+
+  .uploaded-files {
+    margin-top: 12px;
+  }
+  .uploaded-file {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--input-bg-hover);
+    border-radius: 4px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .uploaded-file .file-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 8px;
+  }
+  .uploaded-file .file-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-right: 8px;
+  }
+  .file-remove {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0 4px;
+  }
+
+  /* Estimate display blocks */
+  .estimate-amount {
+    text-align: center;
+    padding: 20px;
+    background: var(--input-bg-hover);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary);
+  }
+  .estimate-amount .label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .estimate-amount .value {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .estimate-amount .fine {
+    font-size: 12px;
+    color: #888;
+    margin-top: 12px;
+    font-style: italic;
+  }
+
+  .repayment-box {
+    background: var(--input-bg);
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+  .repayment-box .weekly {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .review-flags {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid var(--warning);
+    border-radius: 6px;
+    padding: 12px;
+    margin: 15px 0;
+    font-size: 13px;
+  }
+  .review-flags h4 {
+    color: var(--warning);
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .review-flags ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  .review-flags li {
+    padding: 4px 0;
+    color: var(--text-secondary);
   }
 }

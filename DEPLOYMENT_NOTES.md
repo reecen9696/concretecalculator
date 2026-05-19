@@ -165,6 +165,7 @@ In the Vercel dashboard: **Project → Settings → Environment Variables**. Set
 | `RESEND_API_KEY` | All three | From <https://resend.com/api-keys>. Server-side only. |
 | `INQUIRY_RECIPIENT_EMAIL` | All three | `lukeshah100@gmail.com` (or current preferred address). |
 | `SENDER_EMAIL` | All three | `onboarding@resend.dev` for v1. **Don't paste the production domain until DNS is verified — see Resend section below.** |
+| `BLOB_READ_WRITE_TOKEN` | All three | Auto-injected by Vercel when Blob is enabled on the project (see Blob storage section below). |
 | `VITE_HUM_PORTAL_URL` | All three | **TODO Monday.** Do NOT deploy to Production with the placeholder URL. |
 
 **Important**: after changing env vars, redeploy (`vercel --prod`) — env
@@ -177,7 +178,49 @@ Preview-scope env vars. Useful for QA before promoting to Production.
 
 ---
 
-## 6. Resend setup
+## 6. Blob storage (Vercel Blob) — for plans + photos
+
+The Area step's "I'll upload plans or photos" option and the Photos step both
+write directly to Vercel Blob from the browser via short-lived signed tokens
+minted by `/api/upload-url`. The submission email Luke receives contains
+thumbnails and links to each uploaded file.
+
+### Enable Blob on the project
+
+1. In the Vercel dashboard: **Project → Storage → Connect Store → Blob**.
+2. Vercel creates a store and auto-injects `BLOB_READ_WRITE_TOKEN` into all
+   three env scopes (Production, Preview, Development).
+3. Redeploy (`vercel --prod`) so the function picks up the new env var.
+
+That's it — no AWS keys, no separate bucket setup.
+
+### Local dev with Blob
+
+`npx vercel env pull .env.local` pulls the token down to your machine so
+the dev middleware can mint upload URLs locally. Without the token,
+`/api/upload-url` returns 503 with a clear message and uploads at the
+area/photos steps will fail with that error text shown in the file row.
+
+### File constraints
+
+`api/upload-url.ts` enforces:
+- **Max file size**: 10 MB (matches original `pricing.yaml:max_upload_size_mb`)
+- **Allowed types**: `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `application/pdf`
+- **Path scheme**: `inquiries/{YYYY-MM-DD}/{plans|photos}/{filename}` with a
+  random suffix to avoid collisions
+
+### Retention / cost
+
+Vercel Blob's free tier is 500 MB storage and 1 GB bandwidth per month. At a
+rough estimate (one inquiry = ~5 MB total, ~50 inquiries/month) the free tier
+covers more than 100× the expected volume. If volume grows, the next tier
+is $0.15/GB stored / $0.30/GB egress — still trivial.
+
+There's no automatic delete. If you want files purged after N days,
+schedule a Vercel Cron that calls `del()` from `@vercel/blob` for paths
+older than your retention window.
+
+## 7. Resend setup
 
 ### Account + API key
 
@@ -241,7 +284,7 @@ vercel
 
 ---
 
-## 7. Local development against the function
+## 8. Local development against the function
 
 The Vite dev server (`npm run dev`) is fast but doesn't emulate `/api/submit`.
 For end-to-end local testing:
@@ -268,15 +311,10 @@ the function handler with the 5 canonical scenarios without HTTP at all.
 
 ---
 
-## 8. Future work (out of scope for v1)
+## 9. Future work (out of scope for v1)
 
 Documented here so future-you knows where to start:
 
-- **Photo upload (v1.1 candidate).** Original calc accepted up to 5 photos.
-  If Luke needs photos for a lead, he currently replies to the inquiry
-  email and asks. If that friction adds up, add photo uploads back via a
-  signed-URL upload to S3 / R2 (no DB needed — store path in a hidden
-  field on the inquiry email).
 - **Inquiry log / dashboard.** Luke's inbox is the audit trail. If volume
   exceeds what an inbox handles, a simple Airtable / Notion integration
   per inquiry would give him a structured view.

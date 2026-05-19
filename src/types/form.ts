@@ -1,6 +1,6 @@
 /**
  * Form types — the shape of what the customer fills in, the eligibility
- * answers, and the final submission payload sent to /api/submit.
+ * answers, uploaded files, and the final submission payload sent to /api/submit.
  *
  * Pricing types (Estimate, LineItem, etc.) live in src/lib/pricing.ts.
  */
@@ -15,19 +15,9 @@ export type StepId =
   | "removal"
   | "slope"
   | "drainage"
+  | "photos"
   | "estimate"
   | "rejected"; // outcome screen
-
-/** All 7 input steps, in order. */
-export const INPUT_STEPS = [
-  "customer",
-  "eligibility",
-  "area",
-  "finish",
-  "removal",
-  "slope",
-  "drainage",
-] as const satisfies readonly StepId[];
 
 export type Outcome = "eligible" | "rejected";
 
@@ -49,16 +39,13 @@ export interface CustomerDetails {
 // eligibility criteria. See TODO.md.
 
 export type ResidencyAnswer = "yes" | "no";
-
 export type IncomeBand = "<30k" | "30-60k" | "60-100k" | "100k+";
-
 export type EmploymentStatus =
   | "full_time"
   | "part_time"
   | "casual"
   | "self_employed"
   | "unemployed";
-
 export type BankruptcyAnswer = "yes" | "no";
 
 export interface EligibilityAnswers {
@@ -69,10 +56,10 @@ export interface EligibilityAnswers {
 }
 
 // =============================================================================
-// Step 3: Area
+// Step 3: Area  (matches originalcalc: total / sections / plans)
 // =============================================================================
 
-export type AreaMethod = "total" | "sections" | "via_email";
+export type AreaMethod = "total" | "sections" | "plans";
 
 export interface AreaSection {
   /** Local UUID for keyed list rendering. */
@@ -85,18 +72,29 @@ export interface AreaState {
   method?: AreaMethod;
   totalArea: number | "";
   sections: AreaSection[];
-  /** Optional free-text note when method === "via_email". */
-  emailNote: string;
 }
 
 // =============================================================================
-// Step 6: Drainage
+// Step 7: Drainage
 // =============================================================================
 
 export interface DrainageState {
   answer?: Drainage;
   /** Linear metres of strip drain (only consulted when answer === "yes"). */
   lengthM: number | "";
+}
+
+// =============================================================================
+// Uploaded files (plans @ area step + photos @ photos step)
+// =============================================================================
+
+export interface UploadedFile {
+  /** Public Vercel Blob URL. */
+  url: string;
+  filename: string;
+  contentType: string;
+  /** Size in bytes (for display only). */
+  size: number;
 }
 
 // =============================================================================
@@ -108,10 +106,14 @@ export interface FormState {
   customer: CustomerDetails;
   eligibility: EligibilityAnswers;
   area: AreaState;
+  /** Site plan / dimensioned drawings uploaded inline at the area step. */
+  plans: UploadedFile[];
   finish?: Finish;
   hasRemoval?: boolean;
   slope?: Slope;
   drainage: DrainageState;
+  /** Project photos uploaded at the dedicated photos step. */
+  photos: UploadedFile[];
   /** Set to "rejected" the moment the eligibility check fails. */
   outcome: Outcome | null;
 }
@@ -120,8 +122,10 @@ export const INITIAL_FORM_STATE: FormState = {
   step: "customer",
   customer: { name: "", phone: "", email: "", suburb: "" },
   eligibility: {},
-  area: { totalArea: "", sections: [], emailNote: "" },
+  area: { totalArea: "", sections: [] },
+  plans: [],
   drainage: { lengthM: "" },
+  photos: [],
   outcome: null,
 };
 
@@ -142,12 +146,14 @@ export interface SubmissionPayload {
     areaSqm: number;
     areaMethod: AreaMethod;
     areaSections?: { length: number; width: number }[];
-    emailNote?: string;
     finish: Finish;
     hasRemoval: boolean;
     slope: Slope;
     drainage: Drainage;
     stripDrainLengthM?: number;
   };
+  /** Blob URLs of uploaded files (plans + photos), present on eligible path. */
+  plans?: UploadedFile[];
+  photos?: UploadedFile[];
   estimate?: Estimate;
 }

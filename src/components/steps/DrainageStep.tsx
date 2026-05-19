@@ -1,65 +1,48 @@
 import { useFormStore } from "@/state/useFormStore";
+import { RadioRow } from "@/components/ui/RadioRow";
+import { Field } from "@/components/ui/Field";
 import type { Drainage } from "@/lib/pricing";
-import { OptionCard } from "@/components/ui/OptionCard";
-import { TextField } from "@/components/ui/TextField";
-import { StepHeader } from "@/components/steps/CustomerDetailsStep";
 
-const OPTIONS: { v: Drainage; title: string; sub: string }[] = [
-  {
-    v: "no",
-    title: "No",
-    sub: "Water drains away from the garage.",
-  },
-  {
-    v: "yes",
-    title: "Yes",
-    sub: "Water pools near the garage.",
-  },
-  { v: "unsure", title: "Unsure", sub: "We'll confirm on the site visit." },
+const OPTIONS: { v: Drainage; l: string }[] = [
+  { v: "no", l: "No, water drains away" },
+  { v: "yes", l: "Yes, water pools at the garage" },
+  { v: "unsure", l: "Unsure" },
 ];
 
-export function DrainageStep({ errors }: { errors: Record<string, string> }) {
+export function DrainageStep() {
   const { drainage, setDrainage } = useFormStore();
   return (
-    <div className="flex flex-col gap-3">
-      <StepHeader
-        title="Drainage"
-        subtitle="Does water naturally fall back toward the garage?"
-      />
-      <div className="flex flex-col gap-1.5">
-        {OPTIONS.map(({ v, title, sub }) => (
-          <OptionCard
+    <div className="form-section">
+      <h2>Drainage</h2>
+      <div className="form-group">
+        <label>Does water naturally fall back toward the garage? *</label>
+        {OPTIONS.map(({ v, l }) => (
+          <RadioRow
             key={v}
             name="drainage"
             value={v}
-            title={title}
-            description={sub}
+            label={l}
             selected={drainage.answer === v}
             onSelect={() => setDrainage({ answer: v })}
           />
         ))}
       </div>
-      {errors.drainage && (
-        <p className="text-[12px] text-danger">{errors.drainage}</p>
-      )}
 
       {drainage.answer === "yes" && (
-        <div className="mt-1">
-          <TextField
-            label="Approximate strip drain length (metres)"
-            hint="Leave blank if unsure — we'll estimate during review."
-            type="number"
-            step="0.5"
-            min="0"
-            placeholder="6"
-            value={drainage.lengthM === "" ? "" : drainage.lengthM}
-            onChange={(e) =>
-              setDrainage({
-                lengthM: e.target.value === "" ? "" : Number(e.target.value),
-              })
-            }
-          />
-        </div>
+        <Field
+          label="Approximate strip drain length (metres) — optional"
+          type="number"
+          step="0.5"
+          min="0"
+          placeholder="6"
+          value={drainage.lengthM === "" ? "" : drainage.lengthM}
+          onChange={(e) =>
+            setDrainage({
+              lengthM: e.target.value === "" ? "" : Number(e.target.value),
+            })
+          }
+          hint="Leave blank if unsure — we'll estimate during review."
+        />
       )}
     </div>
   );

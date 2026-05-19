@@ -3,8 +3,7 @@
 // See TODO.md.
 
 import { useFormStore } from "@/state/useFormStore";
-import { OptionCard } from "@/components/ui/OptionCard";
-import { StepHeader } from "@/components/steps/CustomerDetailsStep";
+import { RadioRow } from "@/components/ui/RadioRow";
 import type {
   BankruptcyAnswer,
   EmploymentStatus,
@@ -12,18 +11,12 @@ import type {
   ResidencyAnswer,
 } from "@/types/form";
 
-const RESIDENCY: { v: ResidencyAnswer; l: string }[] = [
-  { v: "yes", l: "Yes" },
-  { v: "no", l: "No" },
-];
-
 const INCOME: { v: IncomeBand; l: string }[] = [
   { v: "<30k", l: "Less than $30,000" },
   { v: "30-60k", l: "$30,000 – $60,000" },
   { v: "60-100k", l: "$60,000 – $100,000" },
-  { v: "100k+", l: "$100,000 +" },
+  { v: "100k+", l: "$100,000+" },
 ];
-
 const EMPLOYMENT: { v: EmploymentStatus; l: string }[] = [
   { v: "full_time", l: "Full-time" },
   { v: "part_time", l: "Part-time" },
@@ -32,110 +25,67 @@ const EMPLOYMENT: { v: EmploymentStatus; l: string }[] = [
   { v: "unemployed", l: "Unemployed" },
 ];
 
-const BANKRUPTCY: { v: BankruptcyAnswer; l: string }[] = [
-  { v: "no", l: "No" },
-  { v: "yes", l: "Yes" },
-];
-
-export function EligibilityStep({
-  errors,
-}: {
-  errors: Record<string, string>;
-}) {
+export function EligibilityStep() {
   const { eligibility, setEligibility } = useFormStore();
-
   return (
-    <div className="flex flex-col gap-4">
-      <StepHeader
-        title="Finance pre-check"
-        subtitle="Quick HUM Finance eligibility — your answers stay between us."
-      />
+    <div className="form-section">
+      <h2>HUM Finance Pre-Check</h2>
 
-      <Group
-        label="Are you an Australian resident or permanent visa holder?"
-        error={errors.residency}
-      >
-        <div className="grid grid-cols-2 gap-2">
-          {RESIDENCY.map(({ v, l }) => (
-            <OptionCard
-              key={v}
-              name="residency"
-              value={v}
-              title={l}
-              selected={eligibility.residency === v}
-              onSelect={() => setEligibility({ residency: v })}
-            />
-          ))}
-        </div>
-      </Group>
-
-      <Group label="Annual household income" error={errors.income}>
-        <div className="flex flex-col gap-1.5">
-          {INCOME.map(({ v, l }) => (
-            <OptionCard
-              key={v}
-              name="income"
-              value={v}
-              title={l}
-              selected={eligibility.income === v}
-              onSelect={() => setEligibility({ income: v })}
-            />
-          ))}
-        </div>
-      </Group>
-
-      <Group label="Employment status" error={errors.employment}>
-        <div className="flex flex-col gap-1.5">
-          {EMPLOYMENT.map(({ v, l }) => (
-            <OptionCard
-              key={v}
-              name="employment"
-              value={v}
-              title={l}
-              selected={eligibility.employment === v}
-              onSelect={() => setEligibility({ employment: v })}
-            />
-          ))}
-        </div>
-      </Group>
-
-      <Group
-        label="Have you declared bankruptcy in the last 5 years?"
-        error={errors.bankruptcy}
-      >
-        <div className="grid grid-cols-2 gap-2">
-          {BANKRUPTCY.map(({ v, l }) => (
-            <OptionCard
-              key={v}
-              name="bankruptcy"
-              value={v}
-              title={l}
-              selected={eligibility.bankruptcy === v}
-              onSelect={() => setEligibility({ bankruptcy: v })}
-            />
-          ))}
-        </div>
-      </Group>
-    </div>
-  );
-}
-
-function Group({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="text-[13px] font-medium text-ink tracking-tight">
-        {label}
+      <div className="form-group">
+        <label>Are you an Australian resident or permanent visa holder? *</label>
+        {(["yes", "no"] as ResidencyAnswer[]).map((v) => (
+          <RadioRow
+            key={v}
+            name="residency"
+            value={v}
+            label={v === "yes" ? "Yes" : "No"}
+            selected={eligibility.residency === v}
+            onSelect={() => setEligibility({ residency: v })}
+          />
+        ))}
       </div>
-      {children}
-      {error && <p className="text-[12px] text-danger">{error}</p>}
+
+      <div className="form-group">
+        <label>Annual household income *</label>
+        {INCOME.map(({ v, l }) => (
+          <RadioRow
+            key={v}
+            name="income"
+            value={v}
+            label={l}
+            selected={eligibility.income === v}
+            onSelect={() => setEligibility({ income: v })}
+          />
+        ))}
+      </div>
+
+      <div className="form-group">
+        <label>Employment status *</label>
+        {EMPLOYMENT.map(({ v, l }) => (
+          <RadioRow
+            key={v}
+            name="employment"
+            value={v}
+            label={l}
+            selected={eligibility.employment === v}
+            onSelect={() => setEligibility({ employment: v })}
+          />
+        ))}
+      </div>
+
+      <div className="form-group">
+        <label>Have you declared bankruptcy in the last 5 years? *</label>
+        {(["no", "yes"] as BankruptcyAnswer[]).map((v) => (
+          <RadioRow
+            key={v}
+            name="bankruptcy"
+            value={v}
+            label={v === "yes" ? "Yes" : "No"}
+            selected={eligibility.bankruptcy === v}
+            onSelect={() => setEligibility({ bankruptcy: v })}
+          />
+        ))}
+      </div>
     </div>
   );
 }

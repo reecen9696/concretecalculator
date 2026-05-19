@@ -1,14 +1,13 @@
 /**
  * Single-source-of-truth store for form state, step routing, and the computed
- * estimate. Thin Zustand store — no derived state stored, only inputs and
- * lifecycle flags.
+ * estimate.
  *
  * Step routing rules:
  *   customer → eligibility
  *   eligibility
- *     → rejected   (if any criterion fails)
- *     → area       (if all pass)
- *   area → finish → removal → slope → drainage → estimate
+ *     → rejected   (any criterion fails)
+ *     → area       (all pass)
+ *   area → finish → removal → slope → drainage → photos → estimate
  *   estimate → outcome (handled by submission flow, not store)
  */
 
@@ -21,6 +20,7 @@ import {
   type EligibilityAnswers,
   type FormState,
   type StepId,
+  type UploadedFile,
 } from "@/types/form";
 import type { Finish, Slope } from "@/lib/pricing";
 import { evaluateEligibility } from "@/lib/eligibility";
@@ -33,6 +33,7 @@ export const STEP_ORDER: StepId[] = [
   "removal",
   "slope",
   "drainage",
+  "photos",
   "estimate",
 ];
 
@@ -51,6 +52,10 @@ interface FormActions {
   setHasRemoval: (hasRemoval: boolean) => void;
   setSlope: (slope: Slope) => void;
   setDrainage: (patch: Partial<DrainageState>) => void;
+  addPlan: (file: UploadedFile) => void;
+  removePlan: (url: string) => void;
+  addPhoto: (file: UploadedFile) => void;
+  removePhoto: (url: string) => void;
 }
 
 export type FormStore = FormState & FormActions;
@@ -66,10 +71,9 @@ export const useFormStore = create<FormStore>((set) => ({
 
   next: () =>
     set((s) => {
-      // Eligibility branch: if any criterion fails, jump to rejected.
       if (s.step === "eligibility") {
         const result = evaluateEligibility(s.eligibility);
-        if (result.incomplete) return s; // validation should catch this upstream
+        if (result.incomplete) return s;
         if (!result.eligible) return { step: "rejected", outcome: "rejected" };
       }
       const idx = STEP_ORDER.indexOf(s.step);
@@ -79,7 +83,6 @@ export const useFormStore = create<FormStore>((set) => ({
 
   back: () =>
     set((s) => {
-      // From rejected screen, "back" returns to the eligibility step.
       if (s.step === "rejected") return { step: "eligibility", outcome: null };
       const idx = STEP_ORDER.indexOf(s.step);
       const prevIdx = Math.max(idx - 1, 0);
@@ -127,80 +130,100 @@ export const useFormStore = create<FormStore>((set) => ({
   setSlope: (slope) => set({ slope }),
   setDrainage: (patch) =>
     set((s) => ({ drainage: { ...s.drainage, ...patch } })),
+
+  addPlan: (file) => set((s) => ({ plans: [...s.plans, file] })),
+  removePlan: (url) =>
+    set((s) => ({ plans: s.plans.filter((f) => f.url !== url) })),
+  addPhoto: (file) => set((s) => ({ photos: [...s.photos, file] })),
+  removePhoto: (url) =>
+    set((s) => ({ photos: s.photos.filter((f) => f.url !== url) })),
 }));
 
 // =============================================================================
-// Validation — returns inline error keys per step. UI maps these to messages.
+// Validation — returns inline error list per step. UI shows a single combined
+// error box at the top (matching originalcalc).
 // =============================================================================
 
 export interface StepValidation {
   ok: boolean;
-  errors: Record<string, string>;
+  errors: string[];
 }
 
 export function validateStep(state: FormState): StepValidation {
-  const errors: Record<string, string> = {};
+  const errors: string[] = [];
 
   switch (state.step) {
     case "customer": {
-      if (!state.customer.name.trim()) errors.name = "Full name is required.";
-      if (!state.customer.phone.trim())
-        errors.phone = "Phone number is required.";
+      if (!state.customer.name.trim()) errors.push("Full name is required.");
+      if (!state.customer.phone.trim()) errors.push("Phone number is required.");
       if (!state.customer.email.trim()) {
-        errors.email = "Email is required.";
-      } else if (!/^\S+@\S+\.\S+$/.test(state.customer.email)) {
-        errors.email = "Email doesn't look right.";
+        errors.push("Email address is required.");
+      } else if (!state.customer.email.includes("@")) {
+        errors.push("Please enter a valid email address.");
       }
       if (!state.customer.suburb.trim())
-        errors.suburb = "Suburb or postcode is required.";
+        errors.push("Suburb or postcode is required.");
       break;
     }
     case "eligibility": {
-      if (!state.eligibility.residency) errors.residency = "Required.";
-      if (!state.eligibility.income) errors.income = "Required.";
-      if (!state.eligibility.employment) errors.employment = "Required.";
-      if (!state.eligibility.bankruptcy) errors.bankruptcy = "Required.";
+      if (!state.eligibility.residency)
+        errors.push("Please answer the residency question.");
+      if (!state.eligibility.income)
+        errors.push("Please select your income band.");
+      if (!state.eligibility.employment)
+        errors.push("Please select your employment status.");
+      if (!state.eligibility.bankruptcy)
+        errors.push("Please answer the bankruptcy question.");
       break;
     }
     case "area": {
       const m = state.area.method;
       if (!m) {
-        errors.method = "Choose how you'd like to measure.";
+        errors.push("Please choose how you'd like to measure your driveway.");
         break;
       }
       if (m === "total") {
         const v = Number(state.area.totalArea);
         if (!state.area.totalArea || !Number.isFinite(v) || v <= 0) {
-          errors.totalArea = "Enter a total area in m².";
+          errors.push("Please enter a valid total area in square metres.");
         }
       } else if (m === "sections") {
         const valid = state.area.sections.filter(
           (s) => Number(s.length) > 0 && Number(s.width) > 0,
         );
         if (valid.length === 0) {
-          errors.sections =
-            "Add at least one section with length and width above zero.";
+          errors.push(
+            "Please enter valid measurements for at least one section.",
+          );
+        }
+      } else if (m === "plans") {
+        if (state.plans.length === 0) {
+          errors.push("Please upload your plans or scaled drawing.");
         }
       }
-      // "via_email": no validation — note is optional.
       break;
     }
     case "finish":
-      if (!state.finish) errors.finish = "Pick a finish.";
+      if (!state.finish) errors.push("Please select a concrete finish.");
       break;
     case "removal":
       if (state.hasRemoval === undefined)
-        errors.removal = "Tell us about existing surface.";
+        errors.push("Please tell us about any existing surface.");
       break;
     case "slope":
-      if (!state.slope) errors.slope = "Pick the slope.";
+      if (!state.slope) errors.push("Please select the driveway slope.");
       break;
     case "drainage":
-      if (!state.drainage.answer) errors.drainage = "Pick a drainage option.";
+      if (!state.drainage.answer)
+        errors.push("Please answer the drainage question.");
+      break;
+    case "photos":
+      if (state.photos.length === 0)
+        errors.push("Please upload at least one photo.");
       break;
   }
 
-  return { ok: Object.keys(errors).length === 0, errors };
+  return { ok: errors.length === 0, errors };
 }
 
 // =============================================================================
@@ -217,8 +240,6 @@ export function computeAreaSqm(state: FormState): number {
       return acc + len * wid;
     }, 0);
   }
-  // "via_email": no numerical area; pricing engine still needs a number.
-  // Use a reasonable placeholder — Luke confirms during follow-up email.
-  // We don't actually display this; the estimate step branches when method === "via_email".
+  // "plans": no numerical area provided. Pricing engine will floor to $6,500.
   return 0;
 }

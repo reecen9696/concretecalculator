@@ -1,36 +1,28 @@
 import { useFormStore } from "@/state/useFormStore";
-import { OptionCard } from "@/components/ui/OptionCard";
-import { StepHeader } from "@/components/steps/CustomerDetailsStep";
+import { RadioRow } from "@/components/ui/RadioRow";
 
-export function RemovalStep({ errors }: { errors: Record<string, string> }) {
+export function RemovalStep() {
   const { hasRemoval, setHasRemoval } = useFormStore();
   return (
-    <div className="flex flex-col gap-3">
-      <StepHeader
-        title="Existing surface"
-        subtitle="Is there a driveway or slab to remove first?"
-      />
-      <div className="flex flex-col gap-1.5">
-        <OptionCard
+    <div className="form-section">
+      <h2>Existing Surface</h2>
+      <div className="form-group">
+        <label>Is there an existing driveway or surface to remove? *</label>
+        <RadioRow
           name="removal"
           value="no"
-          title="No"
-          description="New site, or area is already clear."
+          label="No, new site or clear area"
           selected={hasRemoval === false}
           onSelect={() => setHasRemoval(false)}
         />
-        <OptionCard
+        <RadioRow
           name="removal"
           value="yes"
-          title="Yes"
-          description="Demolition / removal required."
+          label="Yes, demolition / removal required"
           selected={hasRemoval === true}
           onSelect={() => setHasRemoval(true)}
         />
       </div>
-      {errors.removal && (
-        <p className="text-[12px] text-danger">{errors.removal}</p>
-      )}
     </div>
   );
 }
