@@ -54,13 +54,6 @@ export default function App() {
 
   return (
     <Shell>
-      {/* Pinned header (progress bar) */}
-      {!isRejected && (
-        <div className="form-top">
-          <ProgressBar />
-        </div>
-      )}
-
       {/* Scrollable middle (current step content) */}
       <div className="form-content">
         <StepView errors={errors} />
@@ -111,6 +104,10 @@ export default function App() {
           </button>
         </div>
       )}
+
+      {/* Bottom-pinned progress bar — absolute positioning means JSX
+          order doesn't matter, but kept last for readability. */}
+      {!isRejected && <ProgressBar />}
     </Shell>
   );
 }
