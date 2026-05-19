@@ -4,27 +4,43 @@ import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 /**
- * Dev-only middleware that runs api/submit.ts inside the Vite dev server.
- * In production this file is irrelevant — Vercel hosts /api/submit as a
- * proper serverless function. Here it just lets us hit the same URL in dev
+ * Dev-only middleware that runs api/*.ts handlers inside the Vite dev server.
+ * In production this file is irrelevant — Vercel hosts each api/*.ts as a
+ * proper serverless function. Here it just lets us hit the same URLs in dev
  * without needing `vercel dev` + Vercel auth.
+ *
+ * Add new endpoints by adding an entry to the routes map below.
  */
-function apiSubmitMiddleware(): Plugin {
+function apiMiddleware(): Plugin {
+  const routes: Record<string, string> = {
+    "/api/submit": "./api/submit.ts",
+    "/api/upload-url": "./api/upload-url.ts",
+  };
+
   return {
-    name: "smooth-concrete-api-submit-dev",
+    name: "smooth-concrete-api-dev",
     apply: "serve",
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url?.startsWith("/api/submit")) return next();
+        const url = req.url?.split("?")[0] ?? "";
+        const match = Object.entries(routes).find(([path]) =>
+          url.startsWith(path),
+        );
+        if (!match) return next();
+        const [, modulePath] = match;
         try {
           const bodyText = await readBody(req);
-          const body = bodyText ? JSON.parse(bodyText) : null;
-          const handler = (await server.ssrLoadModule("./api/submit.ts"))
-            .default;
-          await handler(
-            mockVercelReq(req, body),
-            mockVercelRes(res),
-          );
+          let body: unknown = null;
+          if (bodyText) {
+            try {
+              body = JSON.parse(bodyText);
+            } catch {
+              body = bodyText; // hand the raw text to the handler
+            }
+          }
+          const mod = await server.ssrLoadModule(modulePath);
+          const handler = mod.default;
+          await handler(mockVercelReq(req, body), mockVercelRes(res));
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
           res.statusCode = 500;
@@ -74,7 +90,7 @@ function mockVercelRes(res: ServerResponse) {
 }
 
 export default defineConfig({
-  plugins: [react(), apiSubmitMiddleware()],
+  plugins: [react(), apiMiddleware()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
