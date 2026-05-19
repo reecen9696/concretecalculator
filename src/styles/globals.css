@@ -136,10 +136,11 @@
   }
   /* Subtitle modifier — used for question-style step headings (e.g.
      each eligibility question). 4px smaller than the default h2,
-     centered. */
+     centered, and tinted to match the primary CTA / progress bar. */
   .form-section h2.subtitle {
     font-size: 20px;
     text-align: center;
+    color: var(--primary);
   }
   .form-section h3 {
     font-size: 14px;
