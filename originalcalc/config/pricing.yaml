@@ -1,0 +1,105 @@
+# Smooth Concrete Driveway Calculator - Pricing Configuration
+# Version 1.3 - Corrected HUM brackets + optimization
+
+# Base concrete rates ($/m²)
+base_rates:
+  natural_grey: 110
+  coloured: 130
+  exposed_aggregate:
+    range_0_60: 220         # 0–60m²
+    range_60_100: 210       # 60–100m²
+    range_100_plus: 190     # 100m²+
+  pavilion_finish: 150      # $/m²
+
+# Excavation costs
+excavation:
+  base_allowance: 1500      # Covers up to 65m²
+  above_65: 500             # Add per application for 65m²+
+  above_120: 500            # Add another $500 for 120–130m²+
+
+# Demolition costs (if existing surface removal = YES)
+demolition:
+  minimum_allowance: 2200   # Covers up to 50m²
+  above_50_per_sqm: 50      # $/m² for every m² above 50
+
+# Strip drain (if water falls toward garage)
+strip_drain:
+  up_to_6m: 1500
+  6_to_10m: 2000
+  default_if_unknown: 1500  # Default length = 6m allowance if customer unsure
+
+# Steepness modifiers
+steepness:
+  flat_minimal: 0
+  moderately_steep: 500
+  extremely_steep:
+    25_50: 1000             # Labour allowance for 25–50m²
+    50_plus: 0              # Base labour (pump cost added separately below)
+
+# Pump pricing (configurable for boom/line pump)
+pump:
+  boom_pump_cost: 2000      # TBD: confirm price, keep configurable
+  line_pump_cost: 1500      # TBD: applies 100m²+ for line pump
+  boom_required_above: 50   # m² threshold for extremely steep
+
+# Minimum project price
+minimum_project_price: 6500  # Hard minimum before GST/finance
+
+# HUM Finance brackets (v1.4 - Customer spec)
+# Structure: {from, to, fortnights, fee_percent}
+# All jobs use 65-fortnight term with weekly display
+hum_brackets:
+  - from: 80
+    to: 1000
+    fortnights: 6
+    fee: 4.00
+  - from: 1000.01
+    to: 2000
+    fortnights: 13
+    fee: 4.67
+  - from: 2000.01
+    to: 3500
+    fortnights: 26
+    fee: 6.74
+  - from: 3500.01
+    to: 5000
+    fortnights: 39
+    fee: 8.96
+  - from: 5000.01
+    to: 7000
+    fortnights: 52
+    fee: 11.82
+  - from: 7000.01
+    to: 10000
+    fortnights: 65
+    fee: 14.95
+  - from: 10000.01
+    to: 15000
+    fortnights: 78
+    fee: 17.98
+  - from: 15000.01
+    to: 999999
+    fortnights: 78
+    fee: 17.98
+
+# HUM Optimization Settings (v1.4 - auto-discount logic)
+hum_optimization:
+  enabled: true
+  max_discount_allowance: 450    # Max $ margin loss allowed to fit lower bracket
+  only_when_close: false         # Apply optimization whenever it saves fees
+
+# GST rate
+gst_rate: 0.1  # 10%
+
+# Email settings
+email:
+  to: lukeshah100@gmail.com
+  from: calculator@smoothconcrete.com.au
+  subject_template: "Driveway Estimate - {name} - ${final_estimate}"
+
+# Application settings
+app:
+  max_upload_size_mb: 10
+  allowed_photo_types: [".jpg", ".jpeg", ".png", ".gif", ".webp"]
+  required_photo_count: 1
+  optional_photos_max: 5
