@@ -1,6 +1,10 @@
 # Mac
 .DS_Store
 
+# Python bytecode in /originalcalc
+__pycache__/
+*.pyc
+
 # Node / Vite
 node_modules
 dist
