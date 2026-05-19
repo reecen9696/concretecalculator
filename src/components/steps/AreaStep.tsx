@@ -73,7 +73,6 @@ export function AreaStep({ errors }: { errors: StepErrors }) {
             placeholder="e.g. 25.5"
             value={area.totalArea === "" ? "" : area.totalArea}
             aria-invalid={errors.totalArea ? true : undefined}
-            aria-describedby={errors.totalArea ? "totalArea-err" : undefined}
             onChange={(e) =>
               setArea({
                 totalArea: e.target.value === "" ? "" : Number(e.target.value),
@@ -81,11 +80,7 @@ export function AreaStep({ errors }: { errors: StepErrors }) {
             }
           />
           <div className="field-help">
-            {errors.totalArea ? (
-              <p id="totalArea-err" className="field-error">
-                <span>{errors.totalArea}</span>
-              </p>
-            ) : (
+            {!errors.totalArea && (
               <p className="form-hint">
                 Enter the total square metres of your driveway.
               </p>
@@ -182,11 +177,6 @@ export function AreaStep({ errors }: { errors: StepErrors }) {
               + Add another section
             </button>
           </div>
-          {errors.sections && (
-            <p className="field-error" style={{ marginTop: 10 }}>
-              <span>{errors.sections}</span>
-            </p>
-          )}
         </div>
       )}
 
@@ -203,7 +193,7 @@ export function AreaStep({ errors }: { errors: StepErrors }) {
             icon="📄"
             promptLabel="Click to upload plans or photos showing the driveway area"
             hint="Please highlight the driveway area as accurately as possible. We'll scale from this marked area to estimate your driveway size."
-            error={errors.plans}
+            invalid={!!errors.plans}
           />
         </div>
       )}

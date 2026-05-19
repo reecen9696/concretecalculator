@@ -12,7 +12,7 @@ export function CustomerDetailsStep({ errors }: { errors: StepErrors }) {
         autoComplete="name"
         placeholder="John Smith"
         value={customer.name}
-        error={errors.name}
+        invalid={!!errors.name}
         onChange={(e) => setCustomer({ name: e.target.value })}
       />
       <Field
@@ -22,7 +22,7 @@ export function CustomerDetailsStep({ errors }: { errors: StepErrors }) {
         autoComplete="tel"
         placeholder="0412 345 678"
         value={customer.phone}
-        error={errors.phone}
+        invalid={!!errors.phone}
         onChange={(e) => setCustomer({ phone: e.target.value })}
       />
       <Field
@@ -41,7 +41,7 @@ export function CustomerDetailsStep({ errors }: { errors: StepErrors }) {
         autoComplete="address-level2"
         placeholder="Docklands VIC 3008"
         value={customer.suburb}
-        error={errors.suburb}
+        invalid={!!errors.suburb}
         onChange={(e) => setCustomer({ suburb: e.target.value })}
       />
     </div>

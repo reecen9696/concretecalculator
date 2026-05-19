@@ -16,8 +16,8 @@ interface FileUploadProps {
   icon?: string;
   promptLabel?: string;
   multiple?: boolean;
-  /** Per-field error — paints the dropzone red + shows error below. */
-  error?: string;
+  /** When true, paints the dropzone red border (no message below). */
+  invalid?: boolean;
   /** Stable element id for aria-describedby. */
   id?: string;
 }
@@ -40,13 +40,12 @@ export function FileUpload({
   icon = "📸",
   promptLabel = "Click to upload",
   multiple = true,
-  error,
+  invalid,
   id,
 }: FileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<PendingItem[]>([]);
-  const widgetId = id ?? `fu-${kind}`;
-  const errId = `${widgetId}-err`;
+  void id; // reserved for future a11y wiring
 
   const handleFiles = async (chosen: FileList | null) => {
     if (!chosen) return;
@@ -81,7 +80,7 @@ export function FileUpload({
     <div>
       {hint && <p className="form-hint" style={{ marginBottom: 8 }}>{hint}</p>}
       <div
-        className={`file-upload ${error ? "is-invalid" : ""}`}
+        className={`file-upload ${invalid ? "is-invalid" : ""}`}
         onClick={() => inputRef.current?.click()}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -91,8 +90,7 @@ export function FileUpload({
         }}
         role="button"
         tabIndex={0}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? errId : undefined}
+        aria-invalid={invalid ? true : undefined}
       >
         <div className="icon">{icon}</div>
         <div className="text">
@@ -110,11 +108,6 @@ export function FileUpload({
         onChange={(e) => handleFiles(e.target.files)}
       />
 
-      {error && (
-        <p id={errId} className="field-error">
-          <span>{error}</span>
-        </p>
-      )}
 
       {(files.length > 0 || pending.length > 0) && (
         <div className="uploaded-files">

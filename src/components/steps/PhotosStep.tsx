@@ -19,7 +19,7 @@ export function PhotosStep({ errors }: { errors: StepErrors }) {
           icon="📸"
           promptLabel="Click to upload photos (JPG, PNG, GIF, WebP)"
           hint="Recommended: street-facing, garage-facing, and side slope views."
-          error={errors.photos}
+          invalid={!!errors.photos}
         />
       </div>
     </div>
