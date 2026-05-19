@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
-import { useFormStore, validateStep, STEP_ORDER } from "@/state/useFormStore";
+import { useFormStore, validateStep } from "@/state/useFormStore";
 import { Shell } from "@/components/Shell";
 import { ProgressBar } from "@/components/ProgressBar";
 import { CustomerDetailsStep } from "@/components/steps/CustomerDetailsStep";
-import { EligibilityStep } from "@/components/steps/EligibilityStep";
+import {
+  ResidencyStep,
+  IncomeStep,
+  EmploymentStep,
+  BankruptcyStep,
+} from "@/components/steps/EligibilitySteps";
 import { AreaStep } from "@/components/steps/AreaStep";
 import { FinishStep } from "@/components/steps/FinishStep";
 import { RemovalStep } from "@/components/steps/RemovalStep";
@@ -17,10 +22,11 @@ export default function App() {
   const state = useFormStore();
   const [errors, setErrors] = useState<string[]>([]);
 
-  // Clear errors + scroll to top whenever the step changes.
+  // Clear errors + scroll content to top whenever the step changes.
   useEffect(() => {
     setErrors([]);
-    window.scrollTo({ top: 0, behavior: "instant" });
+    const content = document.querySelector(".form-content");
+    if (content) content.scrollTop = 0;
   }, [state.step]);
 
   const handleNext = () => {
@@ -39,43 +45,62 @@ export default function App() {
 
   const isRejected = state.step === "rejected";
   const isEstimate = state.step === "estimate";
+  const isFirstStep = state.step === "customer";
+  const isLastInputStep = state.step === "photos";
 
   return (
     <Shell>
-      {!isRejected && <ProgressBar />}
-
-      {errors.length > 0 && (
-        <div className="error-message">
-          <strong>Please fix the following:</strong>
-          <ul>
-            {errors.map((e, i) => (
-              <li key={i}>{e}</li>
-            ))}
-          </ul>
+      {/* Pinned header (progress bar) */}
+      {!isRejected && (
+        <div className="form-top">
+          <ProgressBar />
         </div>
       )}
 
-      <StepView />
+      {/* Scrollable middle (errors + current step content) */}
+      <div className="form-content">
+        {errors.length > 0 && (
+          <div className="error-message">
+            <strong>Please fix the following:</strong>
+            <ul>
+              {errors.map((e, i) => (
+                <li key={i}>{e}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <StepView />
+      </div>
 
-      {/* Navigation rows */}
+      {/* Pinned footer (buttons stuck to bottom) */}
       {!isRejected && !isEstimate && (
         <div className="btn-row">
-          {state.step !== "customer" ? (
-            <button type="button" className="btn btn-secondary" onClick={handleBack}>
+          {!isFirstStep && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleBack}
+            >
               ← Back
             </button>
-          ) : (
-            <span style={{ flex: 1 }} />
           )}
-          <button type="button" className="btn btn-primary" onClick={handleNext}>
-            {state.step === "photos" ? "See estimate →" : "Next →"}
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleNext}
+          >
+            {isLastInputStep ? "See estimate →" : "Next →"}
           </button>
         </div>
       )}
 
       {isEstimate && (
         <div className="btn-row">
-          <button type="button" className="btn btn-secondary" onClick={handleBack}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleBack}
+          >
             ← Back
           </button>
         </div>
@@ -83,7 +108,11 @@ export default function App() {
 
       {isRejected && (
         <div className="btn-row">
-          <button type="button" className="btn btn-secondary" onClick={handleBack}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleBack}
+          >
             ← Revise answers
           </button>
         </div>
@@ -94,12 +123,17 @@ export default function App() {
 
 function StepView() {
   const step = useFormStore((s) => s.step);
-  // Key on step so the CSS fadeIn animation re-fires on each transition.
   switch (step) {
     case "customer":
       return <CustomerDetailsStep key={step} />;
-    case "eligibility":
-      return <EligibilityStep key={step} />;
+    case "elig-residency":
+      return <ResidencyStep key={step} />;
+    case "elig-income":
+      return <IncomeStep key={step} />;
+    case "elig-employment":
+      return <EmploymentStep key={step} />;
+    case "elig-bankruptcy":
+      return <BankruptcyStep key={step} />;
     case "area":
       return <AreaStep key={step} />;
     case "finish":
@@ -117,11 +151,8 @@ function StepView() {
     case "rejected":
       return <RejectedScreen key={step} />;
     default:
-      // exhaustive switch sentinel — keep STEP_ORDER updated
       void (step satisfies never);
       return null;
   }
 }
 
-// Re-export STEP_ORDER so build-time tooling can see it (unused at runtime here).
-export { STEP_ORDER };

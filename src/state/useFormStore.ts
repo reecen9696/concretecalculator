@@ -3,8 +3,8 @@
  * estimate.
  *
  * Step routing rules:
- *   customer → eligibility
- *   eligibility
+ *   customer → elig-residency → elig-income → elig-employment → elig-bankruptcy
+ *   After elig-bankruptcy: evaluate eligibility
  *     → rejected   (any criterion fails)
  *     → area       (all pass)
  *   area → finish → removal → slope → drainage → photos → estimate
@@ -14,6 +14,7 @@
 import { create } from "zustand";
 import {
   INITIAL_FORM_STATE,
+  STEP_ORDER,
   type AreaSection,
   type CustomerDetails,
   type DrainageState,
@@ -25,17 +26,7 @@ import {
 import type { Finish, Slope } from "@/lib/pricing";
 import { evaluateEligibility } from "@/lib/eligibility";
 
-export const STEP_ORDER: StepId[] = [
-  "customer",
-  "eligibility",
-  "area",
-  "finish",
-  "removal",
-  "slope",
-  "drainage",
-  "photos",
-  "estimate",
-];
+export { STEP_ORDER };
 
 interface FormActions {
   setStep: (step: StepId) => void;
@@ -71,9 +62,11 @@ export const useFormStore = create<FormStore>((set) => ({
 
   next: () =>
     set((s) => {
-      if (s.step === "eligibility") {
+      // After answering the bankruptcy question (last eligibility sub-step),
+      // evaluate eligibility before continuing.
+      if (s.step === "elig-bankruptcy") {
         const result = evaluateEligibility(s.eligibility);
-        if (result.incomplete) return s;
+        if (result.incomplete) return s; // validation should catch this upstream
         if (!result.eligible) return { step: "rejected", outcome: "rejected" };
       }
       const idx = STEP_ORDER.indexOf(s.step);
@@ -83,7 +76,10 @@ export const useFormStore = create<FormStore>((set) => ({
 
   back: () =>
     set((s) => {
-      if (s.step === "rejected") return { step: "eligibility", outcome: null };
+      // From rejected screen, "back" returns to the bankruptcy question
+      // (since that's where the rejection was decided).
+      if (s.step === "rejected")
+        return { step: "elig-bankruptcy", outcome: null };
       const idx = STEP_ORDER.indexOf(s.step);
       const prevIdx = Math.max(idx - 1, 0);
       return { step: STEP_ORDER[prevIdx] };
@@ -165,17 +161,21 @@ export function validateStep(state: FormState): StepValidation {
         errors.push("Suburb or postcode is required.");
       break;
     }
-    case "eligibility": {
+    case "elig-residency":
       if (!state.eligibility.residency)
-        errors.push("Please answer the residency question.");
-      if (!state.eligibility.income)
-        errors.push("Please select your income band.");
-      if (!state.eligibility.employment)
-        errors.push("Please select your employment status.");
-      if (!state.eligibility.bankruptcy)
-        errors.push("Please answer the bankruptcy question.");
+        errors.push("Please select an option.");
       break;
-    }
+    case "elig-income":
+      if (!state.eligibility.income) errors.push("Please select an option.");
+      break;
+    case "elig-employment":
+      if (!state.eligibility.employment)
+        errors.push("Please select an option.");
+      break;
+    case "elig-bankruptcy":
+      if (!state.eligibility.bankruptcy)
+        errors.push("Please select an option.");
+      break;
     case "area": {
       const m = state.area.method;
       if (!m) {

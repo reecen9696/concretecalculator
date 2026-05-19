@@ -9,7 +9,10 @@ import type { Drainage, Finish, Slope } from "@/lib/pricing";
 
 export type StepId =
   | "customer"
-  | "eligibility"
+  | "elig-residency"
+  | "elig-income"
+  | "elig-employment"
+  | "elig-bankruptcy"
   | "area"
   | "finish"
   | "removal"
@@ -18,6 +21,22 @@ export type StepId =
   | "photos"
   | "estimate"
   | "rejected"; // outcome screen
+
+/** Steps that count toward the visible progress bar (excludes outcome). */
+export const STEP_ORDER: StepId[] = [
+  "customer",
+  "elig-residency",
+  "elig-income",
+  "elig-employment",
+  "elig-bankruptcy",
+  "area",
+  "finish",
+  "removal",
+  "slope",
+  "drainage",
+  "photos",
+  "estimate",
+];
 
 export type Outcome = "eligible" | "rejected";
 
@@ -33,10 +52,10 @@ export interface CustomerDetails {
 }
 
 // =============================================================================
-// Step 2: Eligibility
+// Steps 2–5: Eligibility (one question per step)
 // =============================================================================
-// TODO(monday): Replace these placeholder fields with Luke's actual HUM Finance
-// eligibility criteria. See TODO.md.
+// TODO(monday): Replace placeholder enums + copy with Luke's documented
+// HUM Finance criteria. See TODO.md.
 
 export type ResidencyAnswer = "yes" | "no";
 export type IncomeBand = "<30k" | "30-60k" | "60-100k" | "100k+";
@@ -56,7 +75,7 @@ export interface EligibilityAnswers {
 }
 
 // =============================================================================
-// Step 3: Area  (matches originalcalc: total / sections / plans)
+// Step 6: Area (total / sections / plans)
 // =============================================================================
 
 export type AreaMethod = "total" | "sections" | "plans";
@@ -75,7 +94,7 @@ export interface AreaState {
 }
 
 // =============================================================================
-// Step 7: Drainage
+// Step 10: Drainage
 // =============================================================================
 
 export interface DrainageState {
