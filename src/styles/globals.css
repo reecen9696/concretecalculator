@@ -148,6 +148,40 @@
     margin-top: 4px;
   }
 
+  /* Field group — used by Field/TextAreaField and inline text-input
+     form-groups. Reserves the helper slot beneath the input so the
+     error or hint text floats absolutely and doesn't shift content
+     underneath when it appears/disappears. */
+  .field-group {
+    position: relative;
+    margin-bottom: 28px;
+  }
+  .field-group > label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .field-help {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    min-height: 16px;
+    pointer-events: none;
+  }
+  .field-help > * {
+    pointer-events: auto;
+  }
+  /* When the helper slot holds an error/hint, the margin-top on the
+     inner element duplicates the slot's own — drop it. */
+  .field-help .field-error,
+  .field-help .form-hint {
+    margin-top: 0;
+  }
+
   /* Inputs */
   .field {
     width: 100%;

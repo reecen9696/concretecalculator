@@ -9,10 +9,10 @@ interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
 
 /**
  * Flat input matching `input.field` from originalcalc, with inline
- * validation:
- *   - aria-invalid + aria-describedby for assistive tech
- *   - red border on the input
- *   - small red error text below, with a leading ⚠ glyph
+ * validation. The helper slot (error / hint) is absolutely positioned
+ * below the input so its presence or absence doesn't shift any sibling
+ * fields underneath — important on the multi-input customer step at
+ * 510px card height.
  */
 export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
   { label, hint, error, id, name, ...rest },
@@ -21,7 +21,7 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
   const inputId = id ?? `f-${name ?? Math.random().toString(36).slice(2, 8)}`;
   const errId = `${inputId}-err`;
   return (
-    <div className="form-group">
+    <div className="field-group">
       <label htmlFor={inputId}>{label}</label>
       <input
         ref={ref}
@@ -32,13 +32,15 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
         aria-describedby={error ? errId : undefined}
         {...rest}
       />
-      {error ? (
-        <p id={errId} className="field-error">
-          <span>{error}</span>
-        </p>
-      ) : hint ? (
-        <p className="form-hint">{hint}</p>
-      ) : null}
+      <div className="field-help">
+        {error ? (
+          <p id={errId} className="field-error">
+            <span>{error}</span>
+          </p>
+        ) : hint ? (
+          <p className="form-hint">{hint}</p>
+        ) : null}
+      </div>
     </div>
   );
 });
@@ -55,7 +57,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
       id ?? `f-${name ?? Math.random().toString(36).slice(2, 8)}`;
     const errId = `${inputId}-err`;
     return (
-      <div className="form-group">
+      <div className="field-group">
         <label htmlFor={inputId}>{label}</label>
         <textarea
           ref={ref}
@@ -66,13 +68,15 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
           aria-describedby={error ? errId : undefined}
           {...rest}
         />
-        {error ? (
-          <p id={errId} className="field-error">
-            <span>{error}</span>
-          </p>
-        ) : hint ? (
-          <p className="form-hint">{hint}</p>
-        ) : null}
+        <div className="field-help">
+          {error ? (
+            <p id={errId} className="field-error">
+              <span>{error}</span>
+            </p>
+          ) : hint ? (
+            <p className="form-hint">{hint}</p>
+          ) : null}
+        </div>
       </div>
     );
   },

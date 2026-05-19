@@ -6,7 +6,6 @@ export function Shell({ children }: { children: ReactNode }) {
     <div className="container">
       <div className="form-header">
         <h1>Driveway Estimate</h1>
-        <p>Fast, transparent pricing</p>
       </div>
       {children}
     </div>

@@ -62,7 +62,7 @@ export function AreaStep({ errors }: { errors: StepErrors }) {
       </div>
 
       {area.method === "total" && (
-        <div className="form-group">
+        <div className="field-group">
           <label htmlFor="totalArea">Total Area (m²)</label>
           <input
             id="totalArea"
@@ -80,15 +80,17 @@ export function AreaStep({ errors }: { errors: StepErrors }) {
               })
             }
           />
-          {errors.totalArea ? (
-            <p id="totalArea-err" className="field-error">
-              <span>{errors.totalArea}</span>
-            </p>
-          ) : (
-            <p className="form-hint">
-              Enter the total square metres of your driveway.
-            </p>
-          )}
+          <div className="field-help">
+            {errors.totalArea ? (
+              <p id="totalArea-err" className="field-error">
+                <span>{errors.totalArea}</span>
+              </p>
+            ) : (
+              <p className="form-hint">
+                Enter the total square metres of your driveway.
+              </p>
+            )}
+          </div>
         </div>
       )}
 
