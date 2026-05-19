@@ -1,7 +1,8 @@
 import { useFormStore } from "@/state/useFormStore";
 import { Field } from "@/components/ui/Field";
+import type { StepErrors } from "@/state/useFormStore";
 
-export function CustomerDetailsStep() {
+export function CustomerDetailsStep({ errors }: { errors: StepErrors }) {
   const { customer, setCustomer } = useFormStore();
   return (
     <div className="form-section">
@@ -12,6 +13,7 @@ export function CustomerDetailsStep() {
         autoComplete="name"
         placeholder="John Smith"
         value={customer.name}
+        error={errors.name}
         onChange={(e) => setCustomer({ name: e.target.value })}
       />
       <Field
@@ -21,6 +23,7 @@ export function CustomerDetailsStep() {
         autoComplete="tel"
         placeholder="0412 345 678"
         value={customer.phone}
+        error={errors.phone}
         onChange={(e) => setCustomer({ phone: e.target.value })}
       />
       <Field
@@ -30,6 +33,7 @@ export function CustomerDetailsStep() {
         autoComplete="email"
         placeholder="john@example.com"
         value={customer.email}
+        error={errors.email}
         onChange={(e) => setCustomer({ email: e.target.value })}
       />
       <Field
@@ -38,6 +42,7 @@ export function CustomerDetailsStep() {
         autoComplete="address-level2"
         placeholder="Docklands VIC 3008"
         value={customer.suburb}
+        error={errors.suburb}
         onChange={(e) => setCustomer({ suburb: e.target.value })}
       />
     </div>

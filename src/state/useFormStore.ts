@@ -136,94 +136,98 @@ export const useFormStore = create<FormStore>((set) => ({
 }));
 
 // =============================================================================
-// Validation — returns inline error list per step. UI shows a single combined
-// error box at the top (matching originalcalc).
+// Validation — returns per-field error map. UI displays each error inline
+// beneath its input (WCAG-friendly inline-validation pattern: aria-invalid
+// + below-field error text linked via aria-describedby).
 // =============================================================================
+
+export type StepErrors = Record<string, string>;
 
 export interface StepValidation {
   ok: boolean;
-  errors: string[];
+  errors: StepErrors;
 }
 
 export function validateStep(state: FormState): StepValidation {
-  const errors: string[] = [];
+  const errors: StepErrors = {};
 
   switch (state.step) {
     case "customer": {
-      if (!state.customer.name.trim()) errors.push("Full name is required.");
-      if (!state.customer.phone.trim()) errors.push("Phone number is required.");
+      if (!state.customer.name.trim()) errors.name = "Full name is required.";
+      if (!state.customer.phone.trim())
+        errors.phone = "Phone number is required.";
       if (!state.customer.email.trim()) {
-        errors.push("Email address is required.");
+        errors.email = "Email address is required.";
       } else if (!state.customer.email.includes("@")) {
-        errors.push("Please enter a valid email address.");
+        errors.email = "Please enter a valid email address.";
       }
       if (!state.customer.suburb.trim())
-        errors.push("Suburb or postcode is required.");
+        errors.suburb = "Suburb or postcode is required.";
       break;
     }
     case "elig-residency":
       if (!state.eligibility.residency)
-        errors.push("Please select an option.");
+        errors.residency = "Please select an option.";
       break;
     case "elig-income":
-      if (!state.eligibility.income) errors.push("Please select an option.");
+      if (!state.eligibility.income) errors.income = "Please select an option.";
       break;
     case "elig-employment":
       if (!state.eligibility.employment)
-        errors.push("Please select an option.");
+        errors.employment = "Please select an option.";
       break;
     case "elig-bankruptcy":
       if (!state.eligibility.bankruptcy)
-        errors.push("Please select an option.");
+        errors.bankruptcy = "Please select an option.";
       break;
     case "area": {
       const m = state.area.method;
       if (!m) {
-        errors.push("Please choose how you'd like to measure your driveway.");
+        errors.method = "Please choose how you'd like to measure your driveway.";
         break;
       }
       if (m === "total") {
         const v = Number(state.area.totalArea);
         if (!state.area.totalArea || !Number.isFinite(v) || v <= 0) {
-          errors.push("Please enter a valid total area in square metres.");
+          errors.totalArea =
+            "Enter a valid total area in square metres.";
         }
       } else if (m === "sections") {
         const valid = state.area.sections.filter(
           (s) => Number(s.length) > 0 && Number(s.width) > 0,
         );
         if (valid.length === 0) {
-          errors.push(
-            "Please enter valid measurements for at least one section.",
-          );
+          errors.sections =
+            "Enter valid measurements for at least one section.";
         }
       } else if (m === "plans") {
         if (state.plans.length === 0) {
-          errors.push("Please upload your plans or scaled drawing.");
+          errors.plans = "Upload your plans or scaled drawing.";
         }
       }
       break;
     }
     case "finish":
-      if (!state.finish) errors.push("Please select a concrete finish.");
+      if (!state.finish) errors.finish = "Please select a concrete finish.";
       break;
     case "removal":
       if (state.hasRemoval === undefined)
-        errors.push("Please tell us about any existing surface.");
+        errors.removal = "Please tell us about any existing surface.";
       break;
     case "slope":
-      if (!state.slope) errors.push("Please select the driveway slope.");
+      if (!state.slope) errors.slope = "Please select the driveway slope.";
       break;
     case "drainage":
       if (!state.drainage.answer)
-        errors.push("Please answer the drainage question.");
+        errors.drainage = "Please answer the drainage question.";
       break;
     case "photos":
       if (state.photos.length === 0)
-        errors.push("Please upload at least one photo.");
+        errors.photos = "Upload at least one photo.";
       break;
   }
 
-  return { ok: errors.length === 0, errors };
+  return { ok: Object.keys(errors).length === 0, errors };
 }
 
 // =============================================================================

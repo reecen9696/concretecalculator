@@ -2,6 +2,7 @@ import { useFormStore } from "@/state/useFormStore";
 import { RadioRow } from "@/components/ui/RadioRow";
 import { Field } from "@/components/ui/Field";
 import type { Drainage } from "@/lib/pricing";
+import type { StepErrors } from "@/state/useFormStore";
 
 const OPTIONS: { v: Drainage; l: string }[] = [
   { v: "no", l: "No, water drains away" },
@@ -9,7 +10,7 @@ const OPTIONS: { v: Drainage; l: string }[] = [
   { v: "unsure", l: "Unsure" },
 ];
 
-export function DrainageStep() {
+export function DrainageStep({ errors }: { errors: StepErrors }) {
   const { drainage, setDrainage } = useFormStore();
   return (
     <div className="form-section">
@@ -26,6 +27,11 @@ export function DrainageStep() {
             onSelect={() => setDrainage({ answer: v })}
           />
         ))}
+        {errors.drainage && (
+          <p className="field-error">
+            <span>{errors.drainage}</span>
+          </p>
+        )}
       </div>
 
       {drainage.answer === "yes" && (

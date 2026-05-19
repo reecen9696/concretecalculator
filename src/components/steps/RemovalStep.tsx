@@ -1,7 +1,8 @@
 import { useFormStore } from "@/state/useFormStore";
 import { RadioRow } from "@/components/ui/RadioRow";
+import type { StepErrors } from "@/state/useFormStore";
 
-export function RemovalStep() {
+export function RemovalStep({ errors }: { errors: StepErrors }) {
   const { hasRemoval, setHasRemoval } = useFormStore();
   return (
     <div className="form-section">
@@ -22,6 +23,11 @@ export function RemovalStep() {
           selected={hasRemoval === true}
           onSelect={() => setHasRemoval(true)}
         />
+        {errors.removal && (
+          <p className="field-error">
+            <span>{errors.removal}</span>
+          </p>
+        )}
       </div>
     </div>
   );

@@ -4,6 +4,7 @@
 
 import { useFormStore } from "@/state/useFormStore";
 import { RadioRow } from "@/components/ui/RadioRow";
+import type { StepErrors } from "@/state/useFormStore";
 import type {
   BankruptcyAnswer,
   EmploymentStatus,
@@ -26,9 +27,18 @@ const EMPLOYMENT: { v: EmploymentStatus; l: string }[] = [
   { v: "unemployed", l: "Unemployed" },
 ];
 
+function GroupError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="field-error">
+      <span>{message}</span>
+    </p>
+  );
+}
+
 // ---------------------------------------------------------------------------
 
-export function ResidencyStep() {
+export function ResidencyStep({ errors }: { errors: StepErrors }) {
   const { eligibility, setEligibility } = useFormStore();
   return (
     <div className="form-section">
@@ -43,11 +53,12 @@ export function ResidencyStep() {
           onSelect={() => setEligibility({ residency: v })}
         />
       ))}
+      <GroupError message={errors.residency} />
     </div>
   );
 }
 
-export function IncomeStep() {
+export function IncomeStep({ errors }: { errors: StepErrors }) {
   const { eligibility, setEligibility } = useFormStore();
   return (
     <div className="form-section">
@@ -62,11 +73,12 @@ export function IncomeStep() {
           onSelect={() => setEligibility({ income: v })}
         />
       ))}
+      <GroupError message={errors.income} />
     </div>
   );
 }
 
-export function EmploymentStep() {
+export function EmploymentStep({ errors }: { errors: StepErrors }) {
   const { eligibility, setEligibility } = useFormStore();
   return (
     <div className="form-section">
@@ -81,11 +93,12 @@ export function EmploymentStep() {
           onSelect={() => setEligibility({ employment: v })}
         />
       ))}
+      <GroupError message={errors.employment} />
     </div>
   );
 }
 
-export function BankruptcyStep() {
+export function BankruptcyStep({ errors }: { errors: StepErrors }) {
   const { eligibility, setEligibility } = useFormStore();
   return (
     <div className="form-section">
@@ -100,6 +113,7 @@ export function BankruptcyStep() {
           onSelect={() => setEligibility({ bankruptcy: v })}
         />
       ))}
+      <GroupError message={errors.bankruptcy} />
     </div>
   );
 }

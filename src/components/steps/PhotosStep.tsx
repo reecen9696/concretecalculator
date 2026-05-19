@@ -1,7 +1,8 @@
 import { useFormStore } from "@/state/useFormStore";
 import { FileUpload } from "@/components/ui/FileUpload";
+import type { StepErrors } from "@/state/useFormStore";
 
-export function PhotosStep() {
+export function PhotosStep({ errors }: { errors: StepErrors }) {
   const { photos, addPhoto, removePhoto } = useFormStore();
   return (
     <div className="form-section">
@@ -18,6 +19,7 @@ export function PhotosStep() {
           icon="📸"
           promptLabel="Click to upload photos (JPG, PNG, GIF, WebP)"
           hint="Recommended: street-facing, garage-facing, and side slope views."
+          error={errors.photos}
         />
       </div>
     </div>

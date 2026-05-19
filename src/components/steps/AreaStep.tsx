@@ -2,8 +2,9 @@ import { useFormStore } from "@/state/useFormStore";
 import { RadioRow } from "@/components/ui/RadioRow";
 import { FileUpload } from "@/components/ui/FileUpload";
 import type { AreaMethod } from "@/types/form";
+import type { StepErrors } from "@/state/useFormStore";
 
-export function AreaStep() {
+export function AreaStep({ errors }: { errors: StepErrors }) {
   const {
     area,
     setArea,
@@ -19,6 +20,12 @@ export function AreaStep() {
     setArea({ method: m });
     if (m === "sections" && area.sections.length === 0) addAreaSection();
   };
+
+  const sectionsClass = (sec: { length: number | ""; width: number | "" }) =>
+    errors.sections &&
+    (!(Number(sec.length) > 0) || !(Number(sec.width) > 0))
+      ? "is-invalid"
+      : "";
 
   return (
     <div className="form-section">
@@ -47,6 +54,11 @@ export function AreaStep() {
           selected={area.method === "plans"}
           onSelect={() => choose("plans")}
         />
+        {errors.method && (
+          <p className="field-error">
+            <span>{errors.method}</span>
+          </p>
+        )}
       </div>
 
       {area.method === "total" && (
@@ -60,15 +72,23 @@ export function AreaStep() {
             min="0"
             placeholder="e.g. 25.5"
             value={area.totalArea === "" ? "" : area.totalArea}
+            aria-invalid={errors.totalArea ? true : undefined}
+            aria-describedby={errors.totalArea ? "totalArea-err" : undefined}
             onChange={(e) =>
               setArea({
                 totalArea: e.target.value === "" ? "" : Number(e.target.value),
               })
             }
           />
-          <p className="form-hint">
-            Enter the total square metres of your driveway.
-          </p>
+          {errors.totalArea ? (
+            <p id="totalArea-err" className="field-error">
+              <span>{errors.totalArea}</span>
+            </p>
+          ) : (
+            <p className="form-hint">
+              Enter the total square metres of your driveway.
+            </p>
+          )}
         </div>
       )}
 
@@ -82,6 +102,7 @@ export function AreaStep() {
             {area.sections.map((sec, i) => {
               const segArea =
                 (Number(sec.length) || 0) * (Number(sec.width) || 0);
+              const invalidCls = sectionsClass(sec);
               return (
                 <div className="area-card" key={sec.id}>
                   <h4>Section {i + 1}</h4>
@@ -94,6 +115,7 @@ export function AreaStep() {
                         step="0.1"
                         min="0"
                         placeholder="e.g. 6"
+                        className={invalidCls}
                         value={sec.length === "" ? "" : sec.length}
                         onChange={(e) =>
                           updateAreaSection(sec.id, {
@@ -113,6 +135,7 @@ export function AreaStep() {
                         step="0.1"
                         min="0"
                         placeholder="e.g. 3.5"
+                        className={invalidCls}
                         value={sec.width === "" ? "" : sec.width}
                         onChange={(e) =>
                           updateAreaSection(sec.id, {
@@ -157,6 +180,11 @@ export function AreaStep() {
               + Add another section
             </button>
           </div>
+          {errors.sections && (
+            <p className="field-error" style={{ marginTop: 10 }}>
+              <span>{errors.sections}</span>
+            </p>
+          )}
         </div>
       )}
 
@@ -173,6 +201,7 @@ export function AreaStep() {
             icon="📄"
             promptLabel="Click to upload plans or photos showing the driveway area"
             hint="Please highlight the driveway area as accurately as possible. We'll scale from this marked area to estimate your driveway size."
+            error={errors.plans}
           />
         </div>
       )}

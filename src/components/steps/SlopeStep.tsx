@@ -1,6 +1,7 @@
 import { useFormStore } from "@/state/useFormStore";
 import { RadioRow } from "@/components/ui/RadioRow";
 import type { Slope } from "@/lib/pricing";
+import type { StepErrors } from "@/state/useFormStore";
 
 const OPTIONS: { v: Slope; l: string }[] = [
   { v: "flat_minimal", l: "Flat or minimal slope" },
@@ -8,7 +9,7 @@ const OPTIONS: { v: Slope; l: string }[] = [
   { v: "extremely_steep", l: "Extremely steep" },
 ];
 
-export function SlopeStep() {
+export function SlopeStep({ errors }: { errors: StepErrors }) {
   const { slope, setSlope } = useFormStore();
   return (
     <div className="form-section">
@@ -25,6 +26,11 @@ export function SlopeStep() {
             onSelect={() => setSlope(v)}
           />
         ))}
+        {errors.slope && (
+          <p className="field-error">
+            <span>{errors.slope}</span>
+          </p>
+        )}
       </div>
     </div>
   );

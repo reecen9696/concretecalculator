@@ -7,15 +7,19 @@ interface FileUploadProps {
   files: UploadedFile[];
   onAdd: (file: UploadedFile) => void;
   onRemove: (url: string) => void;
-  /** Maximum number of files (originalcalc allowed 5 photos). */
+  /** Maximum number of files. */
   max?: number;
   accept?: string;
   /** Top-of-widget instruction copy. */
   hint?: string;
-  /** Icon shown in the drop zone (kept as an emoji to match originalcalc). */
+  /** Icon shown in the drop zone. */
   icon?: string;
   promptLabel?: string;
   multiple?: boolean;
+  /** Per-field error — paints the dropzone red + shows error below. */
+  error?: string;
+  /** Stable element id for aria-describedby. */
+  id?: string;
 }
 
 interface PendingItem {
@@ -36,31 +40,35 @@ export function FileUpload({
   icon = "📸",
   promptLabel = "Click to upload",
   multiple = true,
+  error,
+  id,
 }: FileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<PendingItem[]>([]);
+  const widgetId = id ?? `fu-${kind}`;
+  const errId = `${widgetId}-err`;
 
   const handleFiles = async (chosen: FileList | null) => {
     if (!chosen) return;
     const list = Array.from(chosen);
     for (const file of list) {
       if (files.length + pending.length >= max) break;
-      const id = `${Date.now()}-${file.name}`;
-      setPending((p) => [...p, { id, filename: file.name, percent: 0 }]);
+      const pid = `${Date.now()}-${file.name}`;
+      setPending((p) => [...p, { id: pid, filename: file.name, percent: 0 }]);
       try {
         const uploaded = await uploadFile(file, {
           kind,
           onProgress: ({ percent }) =>
             setPending((p) =>
-              p.map((x) => (x.id === id ? { ...x, percent } : x)),
+              p.map((x) => (x.id === pid ? { ...x, percent } : x)),
             ),
         });
         onAdd(uploaded);
-        setPending((p) => p.filter((x) => x.id !== id));
+        setPending((p) => p.filter((x) => x.id !== pid));
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         setPending((p) =>
-          p.map((x) => (x.id === id ? { ...x, error: msg } : x)),
+          p.map((x) => (x.id === pid ? { ...x, error: msg } : x)),
         );
       }
     }
@@ -73,7 +81,7 @@ export function FileUpload({
     <div>
       {hint && <p className="form-hint" style={{ marginBottom: 8 }}>{hint}</p>}
       <div
-        className="file-upload"
+        className={`file-upload ${error ? "is-invalid" : ""}`}
         onClick={() => inputRef.current?.click()}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -83,6 +91,8 @@ export function FileUpload({
         }}
         role="button"
         tabIndex={0}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errId : undefined}
       >
         <div className="icon">{icon}</div>
         <div className="text">
@@ -99,6 +109,12 @@ export function FileUpload({
         style={{ display: "none" }}
         onChange={(e) => handleFiles(e.target.files)}
       />
+
+      {error && (
+        <p id={errId} className="field-error">
+          <span>{error}</span>
+        </p>
+      )}
 
       {(files.length > 0 || pending.length > 0) && (
         <div className="uploaded-files">

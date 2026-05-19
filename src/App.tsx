@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { useFormStore, validateStep } from "@/state/useFormStore";
+import {
+  useFormStore,
+  validateStep,
+  type StepErrors,
+} from "@/state/useFormStore";
 import { Shell } from "@/components/Shell";
 import { ProgressBar } from "@/components/ProgressBar";
 import { CustomerDetailsStep } from "@/components/steps/CustomerDetailsStep";
@@ -20,11 +24,11 @@ import { RejectedScreen } from "@/components/steps/outcomes/RejectedScreen";
 
 export default function App() {
   const state = useFormStore();
-  const [errors, setErrors] = useState<string[]>([]);
+  const [errors, setErrors] = useState<StepErrors>({});
 
   // Clear errors + scroll content to top whenever the step changes.
   useEffect(() => {
-    setErrors([]);
+    setErrors({});
     const content = document.querySelector(".form-content");
     if (content) content.scrollTop = 0;
   }, [state.step]);
@@ -35,11 +39,11 @@ export default function App() {
       setErrors(v.errors);
       return;
     }
-    setErrors([]);
+    setErrors({});
     state.next();
   };
   const handleBack = () => {
-    setErrors([]);
+    setErrors({});
     state.back();
   };
 
@@ -57,19 +61,9 @@ export default function App() {
         </div>
       )}
 
-      {/* Scrollable middle (errors + current step content) */}
+      {/* Scrollable middle (current step content) */}
       <div className="form-content">
-        {errors.length > 0 && (
-          <div className="error-message">
-            <strong>Please fix the following:</strong>
-            <ul>
-              {errors.map((e, i) => (
-                <li key={i}>{e}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        <StepView />
+        <StepView errors={errors} />
       </div>
 
       {/* Pinned footer (buttons stuck to bottom) */}
@@ -121,31 +115,31 @@ export default function App() {
   );
 }
 
-function StepView() {
+function StepView({ errors }: { errors: StepErrors }) {
   const step = useFormStore((s) => s.step);
   switch (step) {
     case "customer":
-      return <CustomerDetailsStep key={step} />;
+      return <CustomerDetailsStep key={step} errors={errors} />;
     case "elig-residency":
-      return <ResidencyStep key={step} />;
+      return <ResidencyStep key={step} errors={errors} />;
     case "elig-income":
-      return <IncomeStep key={step} />;
+      return <IncomeStep key={step} errors={errors} />;
     case "elig-employment":
-      return <EmploymentStep key={step} />;
+      return <EmploymentStep key={step} errors={errors} />;
     case "elig-bankruptcy":
-      return <BankruptcyStep key={step} />;
+      return <BankruptcyStep key={step} errors={errors} />;
     case "area":
-      return <AreaStep key={step} />;
+      return <AreaStep key={step} errors={errors} />;
     case "finish":
-      return <FinishStep key={step} />;
+      return <FinishStep key={step} errors={errors} />;
     case "removal":
-      return <RemovalStep key={step} />;
+      return <RemovalStep key={step} errors={errors} />;
     case "slope":
-      return <SlopeStep key={step} />;
+      return <SlopeStep key={step} errors={errors} />;
     case "drainage":
-      return <DrainageStep key={step} />;
+      return <DrainageStep key={step} errors={errors} />;
     case "photos":
-      return <PhotosStep key={step} />;
+      return <PhotosStep key={step} errors={errors} />;
     case "estimate":
       return <EstimateStep key={step} />;
     case "rejected":
@@ -155,4 +149,3 @@ function StepView() {
       return null;
   }
 }
-

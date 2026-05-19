@@ -1,6 +1,7 @@
 import { useFormStore } from "@/state/useFormStore";
 import { RadioRow } from "@/components/ui/RadioRow";
 import type { Finish } from "@/lib/pricing";
+import type { StepErrors } from "@/state/useFormStore";
 
 const OPTIONS: { v: Finish; title: string; sub: string }[] = [
   { v: "natural_grey", title: "Natural Grey", sub: "Classic, affordable concrete" },
@@ -17,7 +18,7 @@ const OPTIONS: { v: Finish; title: string; sub: string }[] = [
   },
 ];
 
-export function FinishStep() {
+export function FinishStep({ errors }: { errors: StepErrors }) {
   const { finish, setFinish } = useFormStore();
   return (
     <div className="form-section">
@@ -35,6 +36,11 @@ export function FinishStep() {
             onSelect={() => setFinish(v)}
           />
         ))}
+        {errors.finish && (
+          <p className="field-error">
+            <span>{errors.finish}</span>
+          </p>
+        )}
       </div>
     </div>
   );
