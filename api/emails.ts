@@ -1,0 +1,396 @@
+/**
+ * Email HTML templates.
+ *
+ * `buildLukeInquiryEmail` mirrors the structure of the original Python
+ * `build_inquiry_email` in originalcalc/backend/main.py:272 — Luke is used to
+ * that format. Two-column key/value tables for customer + project details,
+ * line-item pricing breakdown, HUM finance summary with optimisation block
+ * when it fired, prominent final-estimate box, repayment box, review flags.
+ *
+ * `buildLukeRejectionEmail` + `buildCustomerRejectionEmail` are new for this
+ * eligibility-gated build. Customer-facing copy is a TODO-marked placeholder
+ * — wait for Luke's sign-off Monday before final ship.
+ */
+
+import type { ValidatedPayload } from "./submit";
+
+const C = {
+  text: "#333",
+  bg: "#ffffff",
+  navy: "#2c3e50",
+  border: "#e0e0e0",
+  rowAlt: "#f9f9f9",
+  green: "#27ae60",
+  greenSoft: "#f0f0f0",
+  blue: "#2196F3",
+  blueSoft: "#f0f8ff",
+  orange: "#ff9800",
+  orangeSoft: "#fff9e6",
+  brand: "#FF6600",
+  brandSoft: "#fff4ec",
+  mute: "#666",
+};
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function currency(n: number): string {
+  return `$${n.toLocaleString("en-AU", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function titleCase(s: string): string {
+  return s
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function timestamp(): string {
+  const d = new Date();
+  return d.toLocaleString("en-AU", {
+    timeZone: "Australia/Melbourne",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+}
+
+// =============================================================================
+// Inquiry email to Luke (eligible path)
+// =============================================================================
+
+export function buildLukeInquiryEmail(payload: ValidatedPayload): string {
+  if (payload.outcome !== "eligible") return "";
+
+  const { customer, eligibility, project, estimate } = payload;
+
+  const sectionsHtml =
+    project.areaMethod === "sections" && project.areaSections?.length
+      ? `<tr><td class="lbl">Section breakdown:</td><td>${project.areaSections
+          .map(
+            (s, i) =>
+              `Section ${i + 1}: ${s.length}m × ${s.width}m = ${(s.length * s.width).toFixed(2)}m²`,
+          )
+          .join("<br/>")}</td></tr>`
+      : "";
+
+  const emailNoteHtml = project.emailNote
+    ? `<tr><td class="lbl">Customer note:</td><td>${escapeHtml(project.emailNote).replace(/\n/g, "<br/>")}</td></tr>`
+    : "";
+
+  const areaDisplay =
+    project.areaMethod === "via_email"
+      ? "<em>Customer to send via email — follow up required</em>"
+      : `${project.areaSqm}m²`;
+
+  // Pricing breakdown — only present when an estimate was produced.
+  const pricingHtml = estimate
+    ? buildPricingSection(estimate)
+    : `<div class="section">
+         <h3>Pricing</h3>
+         <p style="background:${C.brandSoft};padding:14px;border-left:4px solid ${C.brand};border-radius:4px;">
+           <strong>Estimate pending.</strong> Customer chose to send
+           measurements via email. Follow up with them at
+           <a href="mailto:${escapeHtml(customer.email)}">${escapeHtml(customer.email)}</a>
+           or <a href="tel:${escapeHtml(customer.phone)}">${escapeHtml(customer.phone)}</a>.
+         </p>
+       </div>`;
+
+  return wrap(
+    `Driveway Estimate Inquiry`,
+    `
+    <div class="section">
+      <h3>Customer Details</h3>
+      <table class="kv">
+        <tr><td class="lbl">Name:</td><td>${escapeHtml(customer.name)}</td></tr>
+        <tr><td class="lbl">Phone:</td><td><a href="tel:${escapeHtml(customer.phone)}">${escapeHtml(customer.phone)}</a></td></tr>
+        <tr><td class="lbl">Email:</td><td><a href="mailto:${escapeHtml(customer.email)}">${escapeHtml(customer.email)}</a></td></tr>
+        <tr><td class="lbl">Suburb/Postcode:</td><td>${escapeHtml(customer.suburb)}</td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <h3>Project Details</h3>
+      <table class="kv">
+        <tr><td class="lbl">Finish:</td><td>${titleCase(project.finish)}</td></tr>
+        <tr><td class="lbl">Area:</td><td>${areaDisplay}</td></tr>
+        <tr><td class="lbl">Measurement Source:</td><td>${titleCase(project.areaMethod)}</td></tr>
+        ${sectionsHtml}
+        ${emailNoteHtml}
+        <tr><td class="lbl">Existing Surface Removal:</td><td>${project.hasRemoval ? "Yes" : "No"}</td></tr>
+        <tr><td class="lbl">Slope:</td><td>${titleCase(project.slope)}</td></tr>
+        <tr><td class="lbl">Drainage:</td><td>${titleCase(project.drainage)}${project.stripDrainLengthM ? ` (≈ ${project.stripDrainLengthM}m strip drain)` : ""}</td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <h3>HUM Finance Pre-Check</h3>
+      <table class="kv">
+        ${eligibilityRows(eligibility)}
+      </table>
+      <p style="margin:8px 0 0 0;color:${C.green};font-weight:600;">✓ Eligible — customer routed to HUM portal.</p>
+    </div>
+
+    ${pricingHtml}
+
+    <div class="section">
+      <p style="color:${C.mute};font-size:12px;">
+        Generated by the Smooth Concrete calculator at ${timestamp()}.<br/>
+        Reply directly to this email to reach the customer
+        (${escapeHtml(customer.email)}).
+      </p>
+    </div>
+    `,
+  );
+}
+
+function buildPricingSection(
+  estimate: NonNullable<
+    Extract<ValidatedPayload, { outcome: "eligible" }>["estimate"]
+  >,
+): string {
+  const lineItems = estimate.lineItems
+    .map(
+      (li) => `
+      <tr>
+        <td>${escapeHtml(li.description)}</td>
+        <td style="text-align:right;">${currency(li.amount)}</td>
+      </tr>`,
+    )
+    .join("");
+
+  const optimizationHtml =
+    estimate.optimizationOccurred && estimate.optimizationDetails
+      ? `<div style="background:${C.blueSoft};padding:12px;border-left:4px solid ${C.blue};margin:10px 0;">
+           <strong>✓ HUM Bracket Optimisation Applied</strong><br/>
+           Original bracket: ${escapeHtml(estimate.originalBracket.rangeDesc)} @ ${estimate.originalBracket.feePercent}%<br/>
+           Optimised bracket: ${escapeHtml(estimate.optimizedBracket.rangeDesc)} @ ${estimate.optimizedBracket.feePercent}%<br/>
+           Discount applied: ${currency(estimate.discountApplied)}<br/>
+           Merchant fee savings: ${currency(estimate.optimizationDetails.feeSavings)}<br/>
+           Net benefit: ${currency(estimate.optimizationDetails.netBenefit)}
+         </div>`
+      : "";
+
+  const flagsHtml =
+    estimate.reviewFlags.length > 0
+      ? `<div class="section">
+           <h3>Review Flags</h3>
+           <ul>${estimate.reviewFlags.map((f) => `<li>${escapeHtml(f)}</li>`).join("")}</ul>
+         </div>`
+      : "";
+
+  return `
+    <div class="section">
+      <h3>Pricing Breakdown</h3>
+      <table class="kv">
+        ${lineItems}
+        <tr style="font-weight:700;background:${C.rowAlt};">
+          <td>Subtotal (ex GST, ex finance)</td>
+          <td style="text-align:right;">${currency(estimate.originalSubtotal)}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <h3>HUM Finance Calculation</h3>
+      <table class="kv">
+        <tr><td class="lbl">Original HUM Bracket:</td><td>${escapeHtml(estimate.originalBracket.rangeDesc)} @ ${estimate.originalBracket.feePercent}%</td></tr>
+        <tr><td class="lbl">Original Repayment Terms:</td><td>${estimate.originalBracket.fortnights} fortnights (${estimate.originalBracket.fortnights * 2} weeks)</td></tr>
+      </table>
+
+      ${optimizationHtml}
+
+      <table class="kv">
+        <tr><td class="lbl">Final HUM Bracket:</td><td>${escapeHtml(estimate.optimizedBracket.rangeDesc)} @ ${estimate.optimizedBracket.feePercent}%</td></tr>
+        <tr><td class="lbl">Finance-Adjusted (ex GST):</td><td style="text-align:right;">${currency(estimate.financeAdjustedExGst)}</td></tr>
+        <tr><td class="lbl">GST (10%):</td><td style="text-align:right;">${currency(estimate.gstAmount)}</td></tr>
+      </table>
+
+      <div style="background:${C.greenSoft};padding:15px;margin:10px 0;border-left:4px solid ${C.green};">
+        <div>Final Estimate (inc GST)</div>
+        <div style="font-size:28px;font-weight:700;color:${C.green};">${currency(estimate.finalIncGst)}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Customer-Facing Repayment</h3>
+      <div style="background:${C.orangeSoft};padding:12px;border-left:4px solid ${C.orange};">
+        <p style="margin:0;"><strong>Weekly Repayment Amount</strong></p>
+        <div style="font-size:20px;font-weight:700;color:${C.orange};">${currency(estimate.repayment.weekly)}/week</div>
+        <p style="margin:8px 0 0 0;font-size:12px;">
+          ${estimate.repayment.fortnights} fortnights (${estimate.repayment.termWeeks} weeks)<br/>
+          Fortnightly: ${currency(estimate.repayment.fortnightly)}/fn
+        </p>
+      </div>
+    </div>
+
+    ${flagsHtml}
+  `;
+}
+
+function eligibilityRows(elig: {
+  residency?: string;
+  income?: string;
+  employment?: string;
+  bankruptcy?: string;
+}): string {
+  const fmt = (v: string | undefined) =>
+    v ? escapeHtml(titleCase(v)) : "<em>(not answered)</em>";
+  return `
+    <tr><td class="lbl">Residency:</td><td>${fmt(elig.residency)}</td></tr>
+    <tr><td class="lbl">Income band:</td><td>${escapeHtml(elig.income ?? "(not answered)")}</td></tr>
+    <tr><td class="lbl">Employment:</td><td>${fmt(elig.employment)}</td></tr>
+    <tr><td class="lbl">Bankruptcy (last 5y):</td><td>${fmt(elig.bankruptcy)}</td></tr>
+  `;
+}
+
+// =============================================================================
+// Rejection emails
+// =============================================================================
+
+export function buildLukeRejectionEmail(payload: ValidatedPayload): string {
+  if (payload.outcome !== "rejected") return "";
+  const { customer, eligibility, failedCriteria } = payload;
+
+  const criteriaList =
+    failedCriteria.length > 0
+      ? `<ul>${failedCriteria.map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>`
+      : "<p><em>No criteria failed — investigate.</em></p>";
+
+  return wrap(
+    `REJECTED inquiry — manual follow-up`,
+    `
+    <div class="section">
+      <p style="background:${C.brandSoft};padding:12px;border-left:4px solid ${C.brand};font-weight:600;">
+        Customer failed the HUM Finance pre-check. They've been sent the
+        customer rejection email and shown the thank-you screen. They are
+        expecting a personal follow-up within 24 hours.
+      </p>
+    </div>
+
+    <div class="section">
+      <h3>Customer Details</h3>
+      <table class="kv">
+        <tr><td class="lbl">Name:</td><td>${escapeHtml(customer.name)}</td></tr>
+        <tr><td class="lbl">Phone:</td><td><a href="tel:${escapeHtml(customer.phone)}">${escapeHtml(customer.phone)}</a></td></tr>
+        <tr><td class="lbl">Email:</td><td><a href="mailto:${escapeHtml(customer.email)}">${escapeHtml(customer.email)}</a></td></tr>
+        <tr><td class="lbl">Suburb/Postcode:</td><td>${escapeHtml(customer.suburb)}</td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <h3>Eligibility Answers</h3>
+      <table class="kv">
+        ${eligibilityRows(eligibility)}
+      </table>
+    </div>
+
+    <div class="section">
+      <h3>Failed Criteria</h3>
+      ${criteriaList}
+    </div>
+
+    <div class="section">
+      <p style="color:${C.mute};font-size:12px;">
+        Submitted ${timestamp()}.<br/>
+        Reply directly to this email to reach the customer
+        (${escapeHtml(customer.email)}).
+      </p>
+    </div>
+    `,
+  );
+}
+
+// TODO(monday): Replace this placeholder body with Luke's exact final copy
+// (signed off Monday). Also confirm phone number to insert at the contact
+// line. See TODO.md.
+export function buildCustomerRejectionEmail(payload: ValidatedPayload): string {
+  if (payload.outcome !== "rejected") return "";
+  const { customer } = payload;
+  const firstName = customer.name.trim().split(/\s+/)[0] || "there";
+
+  return wrap(
+    `About your driveway enquiry — Smooth Concrete`,
+    `
+    <div class="section" style="font-size:14px;line-height:1.65;">
+      <p>Hi ${escapeHtml(firstName)},</p>
+
+      <p>
+        Thanks for your interest in Smooth Concrete and for taking the time
+        to complete our finance pre-check.
+      </p>
+
+      <p>
+        Based on the information you provided, HUM Finance may not be
+        available for your situation at this time. The good news is we have
+        other payment options that may suit you better.
+      </p>
+
+      <p>
+        A member of our team will be in touch within 24 hours to discuss
+        alternatives, which can include direct payment plans, smaller-scope
+        project options, or other finance partners.
+      </p>
+
+      <p>
+        If you'd prefer to reach out first, please reply to this email or
+        call us on <strong>[Luke's number]</strong>.
+      </p>
+
+      <p style="margin-top:24px;">
+        Kind regards,<br/>
+        <strong>Smooth Concrete</strong>
+      </p>
+    </div>
+    `,
+  );
+}
+
+// =============================================================================
+// Shared shell — wraps body content in the same HTML chrome the original
+// inquiry email used (navy header, white card, key-value tables).
+// =============================================================================
+
+function wrap(title: string, bodyHtml: string): string {
+  return `
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { font-family: Arial, sans-serif; color: ${C.text}; background: ${C.bg}; margin: 0; padding: 0; }
+      .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+      .header { background: ${C.navy}; color: white; padding: 20px; border-radius: 4px; margin-bottom: 20px; }
+      .header h2 { margin: 0; font-size: 22px; }
+      .header .ts { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+      .section { margin-bottom: 20px; }
+      .section h3 { color: ${C.navy}; border-bottom: 2px solid ${C.border}; padding-bottom: 8px; margin-bottom: 10px; font-size: 16px; }
+      table { width: 100%; border-collapse: collapse; }
+      table.kv td { padding: 8px; border-bottom: 1px solid ${C.border}; font-size: 14px; }
+      table.kv td.lbl { font-weight: 600; width: 40%; }
+      a { color: ${C.navy}; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>${escapeHtml(title)}</h2>
+        <div class="ts">Received ${timestamp()}</div>
+      </div>
+      ${bodyHtml}
+    </div>
+  </body>
+</html>`.trim();
+}
