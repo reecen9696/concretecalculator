@@ -6,7 +6,6 @@ export function CustomerDetailsStep({ errors }: { errors: StepErrors }) {
   const { customer, setCustomer } = useFormStore();
   return (
     <div className="form-section">
-      <h2>Your Details</h2>
       <Field
         label="Full Name"
         name="name"
