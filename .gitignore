@@ -1,0 +1,34 @@
+# Mac
+.DS_Store
+
+# Node / Vite
+node_modules
+dist
+.vite
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Vercel
+.vercel
+
+# Editors
+.idea
+.vscode/*
+!.vscode/extensions.json
+
+# Coverage / test
+coverage
+.nyc_output
+
+# OS / temp
+*.swp
+*.swo
+Thumbs.db

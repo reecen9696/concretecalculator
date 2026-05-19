@@ -1,0 +1,47 @@
+{
+  "name": "smooth-concrete-calculator",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Smooth Concrete driveway calculator — premium rebuild. Static SPA + one serverless function on Vercel.",
+  "scripts": {
+    "dev": "vite",
+    "dev:vercel": "vercel dev",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 5173",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "parity": "tsx scripts/pricing-parity.ts"
+  },
+  "dependencies": {
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-radio-group": "^1.2.1",
+    "@radix-ui/react-select": "^2.1.2",
+    "@radix-ui/react-slot": "^1.1.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.11.0",
+    "lucide-react": "^0.460.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "resend": "^4.0.0",
+    "tailwind-merge": "^2.5.4",
+    "zod": "^3.23.8",
+    "zustand": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vercel/node": "^3.2.24",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.14",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
+  }
+}
