@@ -1,4 +1,5 @@
 import { useFormStore } from "@/state/useFormStore";
+import { TextField } from "@/components/ui/TextField";
 
 export function CustomerDetailsStep({
   errors,
@@ -7,56 +8,70 @@ export function CustomerDetailsStep({
 }) {
   const { customer, setCustomer } = useFormStore();
   return (
-    <div>
-      <h2>Your details</h2>
-      <p>
-        <label>
-          Full name
-          <input
-            type="text"
-            value={customer.name}
-            onChange={(e) => setCustomer({ name: e.target.value })}
-            placeholder="Jane Smith"
-          />
-        </label>
-        {errors.name && <span data-error>{errors.name}</span>}
-      </p>
-      <p>
-        <label>
-          Phone
-          <input
-            type="tel"
-            value={customer.phone}
-            onChange={(e) => setCustomer({ phone: e.target.value })}
-            placeholder="0412 345 678"
-          />
-        </label>
-        {errors.phone && <span data-error>{errors.phone}</span>}
-      </p>
-      <p>
-        <label>
-          Email
-          <input
-            type="email"
-            value={customer.email}
-            onChange={(e) => setCustomer({ email: e.target.value })}
-            placeholder="jane@example.com"
-          />
-        </label>
-        {errors.email && <span data-error>{errors.email}</span>}
-      </p>
-      <p>
-        <label>
-          Suburb / Postcode
-          <input
-            type="text"
-            value={customer.suburb}
-            onChange={(e) => setCustomer({ suburb: e.target.value })}
-            placeholder="Docklands VIC 3008"
-          />
-        </label>
-        {errors.suburb && <span data-error>{errors.suburb}</span>}
-      </p>
+    <div className="flex flex-col gap-3">
+      <StepHeader
+        title="Your details"
+        subtitle="So we know where to send your quote."
+      />
+      <TextField
+        label="Full name"
+        name="name"
+        autoComplete="name"
+        placeholder="Jane Smith"
+        value={customer.name}
+        onChange={(e) => setCustomer({ name: e.target.value })}
+        error={errors.name}
+      />
+      <TextField
+        label="Phone"
+        name="phone"
+        type="tel"
+        autoComplete="tel"
+        placeholder="0412 345 678"
+        value={customer.phone}
+        onChange={(e) => setCustomer({ phone: e.target.value })}
+        error={errors.phone}
+      />
+      <TextField
+        label="Email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        placeholder="jane@example.com"
+        value={customer.email}
+        onChange={(e) => setCustomer({ email: e.target.value })}
+        error={errors.email}
+      />
+      <TextField
+        label="Suburb / postcode"
+        name="suburb"
+        autoComplete="address-level2"
+        placeholder="Docklands VIC 3008"
+        value={customer.suburb}
+        onChange={(e) => setCustomer({ suburb: e.target.value })}
+        error={errors.suburb}
+      />
+    </div>
+  );
+}
+
+export function StepHeader({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle?: string;
+}) {
+  return (
+    <div className="mb-1">
+      <h2 className="text-[17px] font-semibold tracking-tight text-ink">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="mt-0.5 text-[12.5px] text-ink-muted leading-snug">
+          {subtitle}
+        </p>
+      )}
     </div>
   );
 }
