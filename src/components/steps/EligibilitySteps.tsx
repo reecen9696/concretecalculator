@@ -42,7 +42,7 @@ export function ResidencyStep({ errors }: { errors: StepErrors }) {
   const { eligibility, setEligibility } = useFormStore();
   return (
     <div className="form-section">
-      <h2>Are you an Australian resident or permanent visa holder? *</h2>
+      <h2>Are you an Australian resident or permanent visa holder?</h2>
       {(["yes", "no"] as ResidencyAnswer[]).map((v) => (
         <RadioRow
           key={v}
@@ -62,7 +62,7 @@ export function IncomeStep({ errors }: { errors: StepErrors }) {
   const { eligibility, setEligibility } = useFormStore();
   return (
     <div className="form-section">
-      <h2>Annual household income *</h2>
+      <h2>Annual household income</h2>
       {INCOME.map(({ v, l }) => (
         <RadioRow
           key={v}
@@ -82,7 +82,7 @@ export function EmploymentStep({ errors }: { errors: StepErrors }) {
   const { eligibility, setEligibility } = useFormStore();
   return (
     <div className="form-section">
-      <h2>Employment status *</h2>
+      <h2>Employment status</h2>
       {EMPLOYMENT.map(({ v, l }) => (
         <RadioRow
           key={v}
@@ -102,7 +102,7 @@ export function BankruptcyStep({ errors }: { errors: StepErrors }) {
   const { eligibility, setEligibility } = useFormStore();
   return (
     <div className="form-section">
-      <h2>Have you declared bankruptcy in the last 5 years? *</h2>
+      <h2>Have you declared bankruptcy in the last 5 years?</h2>
       {(["no", "yes"] as BankruptcyAnswer[]).map((v) => (
         <RadioRow
           key={v}

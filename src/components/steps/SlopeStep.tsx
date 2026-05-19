@@ -15,7 +15,7 @@ export function SlopeStep({ errors }: { errors: StepErrors }) {
     <div className="form-section">
       <h2>Driveway Slope</h2>
       <div className="form-group">
-        <label>How steep is the driveway? *</label>
+        <label>How steep is the driveway?</label>
         {OPTIONS.map(({ v, l }) => (
           <RadioRow
             key={v}

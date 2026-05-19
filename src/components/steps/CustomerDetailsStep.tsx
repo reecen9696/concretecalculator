@@ -8,7 +8,7 @@ export function CustomerDetailsStep({ errors }: { errors: StepErrors }) {
     <div className="form-section">
       <h2>Your Details</h2>
       <Field
-        label="Full Name *"
+        label="Full Name"
         name="name"
         autoComplete="name"
         placeholder="John Smith"
@@ -17,7 +17,7 @@ export function CustomerDetailsStep({ errors }: { errors: StepErrors }) {
         onChange={(e) => setCustomer({ name: e.target.value })}
       />
       <Field
-        label="Phone Number *"
+        label="Phone Number"
         name="phone"
         type="tel"
         autoComplete="tel"
@@ -27,7 +27,7 @@ export function CustomerDetailsStep({ errors }: { errors: StepErrors }) {
         onChange={(e) => setCustomer({ phone: e.target.value })}
       />
       <Field
-        label="Email Address *"
+        label="Email Address"
         name="email"
         type="email"
         autoComplete="email"
@@ -37,7 +37,7 @@ export function CustomerDetailsStep({ errors }: { errors: StepErrors }) {
         onChange={(e) => setCustomer({ email: e.target.value })}
       />
       <Field
-        label="Suburb / Postcode *"
+        label="Suburb / Postcode"
         name="suburb"
         autoComplete="address-level2"
         placeholder="Docklands VIC 3008"

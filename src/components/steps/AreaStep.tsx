@@ -32,7 +32,7 @@ export function AreaStep({ errors }: { errors: StepErrors }) {
       <h2>Driveway Size</h2>
 
       <div className="form-group">
-        <label>How would you like to measure your driveway? *</label>
+        <label>How would you like to measure your driveway?</label>
         <RadioRow
           name="area-method"
           value="total"
@@ -63,7 +63,7 @@ export function AreaStep({ errors }: { errors: StepErrors }) {
 
       {area.method === "total" && (
         <div className="form-group">
-          <label htmlFor="totalArea">Total Area (m²) *</label>
+          <label htmlFor="totalArea">Total Area (m²)</label>
           <input
             id="totalArea"
             className="field"
@@ -190,7 +190,7 @@ export function AreaStep({ errors }: { errors: StepErrors }) {
 
       {area.method === "plans" && (
         <div className="form-group">
-          <label>Upload plans or scaled drawing *</label>
+          <label>Upload plans or scaled drawing</label>
           <FileUpload
             kind="plans"
             files={plans}
