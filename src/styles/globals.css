@@ -96,14 +96,17 @@
 
   /* Progress bar — pinned to the very bottom edge of the card.
      Bleeds through the container's 24px padding to span the full
-     380px width. No rounded corners. */
+     380px width. No rounded corners. Track uses a translucent white
+     so it's clearly distinguishable from the #333 (30% alpha) card
+     background — without that, only the orange fill is visible and
+     the bar looks like it doesn't reach across. */
   .progress-bar {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
     height: 4px;
-    background: var(--border);
+    background: rgba(255, 255, 255, 0.2);
     overflow: hidden;
   }
   .progress-fill {
