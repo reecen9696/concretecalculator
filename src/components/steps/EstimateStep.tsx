@@ -1,17 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { computeAreaSqm, useFormStore } from "@/state/useFormStore";
 import { calculateEstimate, type Drainage } from "@/lib/pricing";
 import { formatCurrency } from "@/lib/format";
 import { submitInquiry } from "@/lib/submit";
 import type { SubmissionPayload } from "@/types/form";
 
-const HUM_PORTAL_URL =
-  import.meta.env.VITE_HUM_PORTAL_URL ?? "https://hum.com.au";
-
 export function EstimateStep() {
   const state = useFormStore();
-  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState<"sending" | "sent" | "error">("sending");
   const [error, setError] = useState<string | null>(null);
+  const sentRef = useRef(false);
 
   const areaSqm = useMemo(() => computeAreaSqm(state), [state]);
 
@@ -68,17 +66,27 @@ export function EstimateStep() {
     estimate: estimate ?? undefined,
   });
 
-  const handleProceed = async () => {
-    setSubmitting(true);
+  const submit = async () => {
+    setStatus("sending");
     setError(null);
     const result = await submitInquiry(buildPayload());
-    if (!result.success) {
+    if (result.success) {
+      setStatus("sent");
+    } else {
       setError(result.error || "Something went wrong. Please try again.");
-      setSubmitting(false);
-      return;
+      setStatus("error");
     }
-    window.location.href = HUM_PORTAL_URL;
   };
+
+  // Send the inquiry automatically once the customer reaches the estimate —
+  // there's no longer a "submit" button. The ref guards against the effect
+  // firing twice (React StrictMode in dev).
+  useEffect(() => {
+    if (sentRef.current) return;
+    sentRef.current = true;
+    void submit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!estimate) {
     return <div className="form-section">Calculating…</div>;
@@ -96,32 +104,12 @@ export function EstimateStep() {
 
       <div className="repayment-box">
         <h3>Repayment Options · HUM Finance</h3>
-        <div style={{ textAlign: "center", padding: "8px 0" }}>
-          <div
-            style={{
-              fontSize: 12,
-              color: "var(--text-secondary)",
-              marginBottom: 6,
-            }}
-          >
-            Pay over {estimate.repayment.fortnights} fortnights (
-            {estimate.repayment.termWeeks} weeks)
-          </div>
-          <div className="weekly tnum">
-            {formatCurrency(estimate.repayment.weekly)}/week
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: "var(--text-secondary)",
-              marginTop: 6,
-            }}
-          >
-            <span className="tnum">
-              {formatCurrency(estimate.repayment.fortnightly)}
-            </span>{" "}
-            per fortnight
-          </div>
+        <div className="weekly tnum">
+          {formatCurrency(estimate.repayment.weekly)}/week
+        </div>
+        <div className="repay-sub tnum">
+          {formatCurrency(estimate.repayment.fortnightly)}/fortnight ·{" "}
+          {estimate.repayment.fortnights} fortnights
         </div>
       </div>
 
@@ -136,21 +124,28 @@ export function EstimateStep() {
         </div>
       )}
 
-      {error && (
-        <div className="error-message">
-          <strong>Submission error:</strong> {error}
-        </div>
-      )}
-
-      <button
-        type="button"
-        className="btn btn-primary"
-        onClick={handleProceed}
-        disabled={submitting}
-        style={{ width: "100%", marginTop: 20 }}
-      >
-        {submitting ? "Sending…" : "Continue to HUM Finance →"}
-      </button>
+      <div className={`estimate-status estimate-status--${status}`}>
+        {status === "sending" && "Sending your details…"}
+        {status === "sent" && (
+          <>
+            Thanks! We've received your details and will be in contact shortly
+            about the next steps for your driveway.
+          </>
+        )}
+        {status === "error" && (
+          <>
+            <div>We couldn't send your details: {error}</div>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ marginTop: 10 }}
+              onClick={submit}
+            >
+              Try again
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }

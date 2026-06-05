@@ -77,17 +77,9 @@ export default function App() {
         </div>
       )}
 
-      {isEstimate && (
-        <div className="btn-row">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleBack}
-          >
-            ← Back
-          </button>
-        </div>
-      )}
+      {/* The estimate step is terminal — no footer buttons. The inquiry is
+          submitted automatically on arrival; the step shows a next-steps
+          message instead of a Back / Continue action. */}
 
       {/* Bottom-pinned progress bar — absolute positioning means JSX
           order doesn't matter, but kept last for readability. */}
