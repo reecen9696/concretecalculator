@@ -37,3 +37,4 @@ coverage
 *.swo
 Thumbs.db
 screenshots/
+.env*
