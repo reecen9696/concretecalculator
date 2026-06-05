@@ -61,7 +61,7 @@
     height: 100%;
     max-height: 100vh;
     margin: 0;
-    padding: 24px;
+    padding: 16px 24px;
     /* Translucent dark surface — lets the hero photo show through when
        embedded in the Elementor iframe slot. */
     background: rgba(51, 51, 51, 0.3);
@@ -84,18 +84,19 @@
   /* Step header (centered orange title + grey subtitle) */
   .form-header {
     text-align: center;
-    margin-bottom: 14px;
-    padding: 6px 0 0 0;
+    margin-bottom: 10px;
+    padding: 0;
   }
   .form-header h1 {
     font-size: 21px;
     color: var(--text-light);
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     font-weight: 700;
     line-height: 1.2;
   }
   .form-header p {
     font-size: 12px;
+    line-height: 1.4;
     color: var(--text-secondary);
   }
 
@@ -187,11 +188,11 @@
      error nor hint is present — no reserved space, matches the
      radio-row gap density. */
   .field-group {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   .field-group > label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 400;
     font-size: 14px;
     color: var(--text-light);
@@ -227,6 +228,24 @@
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(254, 82, 8, 0.22);
+  }
+  /* Keep the dark field background when the browser autofills (Chrome/Safari
+     otherwise paint a pale blue/yellow). The inset box-shadow masks the
+     autofill colour; the long transition stops it flashing back on focus. */
+  .field:-webkit-autofill,
+  .field:-webkit-autofill:hover,
+  .field:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-light);
+    -webkit-box-shadow: 0 0 0 1000px var(--input-bg) inset;
+    box-shadow: 0 0 0 1000px var(--input-bg) inset;
+    caret-color: var(--text-light);
+    transition: background-color 9999s ease-in-out 0s;
+  }
+  .field:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--input-bg) inset,
+      0 0 0 3px rgba(254, 82, 8, 0.22);
+    box-shadow: 0 0 0 1000px var(--input-bg) inset,
+      0 0 0 3px rgba(254, 82, 8, 0.22);
   }
   /* Inline validation — red border + below-field error text.
      Matches WCAG-friendly inline-validation pattern: aria-invalid +
@@ -452,8 +471,10 @@
     border-color: var(--danger);
   }
   .file-upload .icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 8px;
-    line-height: 0;
     color: var(--text-light);
   }
   .file-upload .icon svg {
