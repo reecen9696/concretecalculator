@@ -25,14 +25,23 @@ export async function submitInquiry(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const data = (await res.json()) as SubmitResult;
-    if (!res.ok || !data.success) {
+    // Read as text first — a platform-level failure (e.g. a crashed function)
+    // returns an HTML/plain error page, not JSON, which would otherwise throw
+    // a cryptic "Unexpected token" when parsed.
+    const raw = await res.text();
+    let data: { success?: boolean; error?: string } = {};
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch {
       return {
         success: false,
-        error: "error" in data ? data.error : `HTTP ${res.status}`,
+        error: `Server error (HTTP ${res.status}). Please try again in a moment.`,
       };
     }
-    return data;
+    if (!res.ok || !data.success) {
+      return { success: false, error: data.error ?? `HTTP ${res.status}` };
+    }
+    return { success: true };
   } catch (err) {
     return {
       success: false,

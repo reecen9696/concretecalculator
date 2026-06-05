@@ -113,17 +113,6 @@ export function EstimateStep() {
         </div>
       </div>
 
-      {estimate.reviewFlags.length > 0 && (
-        <div className="review-flags">
-          <h4>Important Notes</h4>
-          <ul>
-            {estimate.reviewFlags.map((f, i) => (
-              <li key={i}>{f}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       <div className={`estimate-status estimate-status--${status}`}>
         {status === "sending" && "Sending your details…"}
         {status === "sent" && (

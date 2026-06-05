@@ -19,7 +19,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 import { Resend } from "resend";
-import { buildLukeInquiryEmail } from "./emails";
+// NOTE: explicit .js extension is required — package.json has "type":"module"
+// and Vercel runs each api/*.ts as an unbundled ESM module, so Node's ESM
+// resolver needs the extension (it maps back to emails.ts at build time).
+import { buildLukeInquiryEmail } from "./emails.js";
 
 // =============================================================================
 // Payload validation (mirrors src/types/form.ts → SubmissionPayload)
