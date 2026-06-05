@@ -7,12 +7,11 @@ change can be applied to code. `{like_this}` = a value filled in automatically.
 > **Changed in this version:** the first-step header has been reworked into a
 > headline + subheadline (Global header section below). Grammar fix: "A" → "An".
 >
-> **Step order changed:** the driveway-measurement question is now the FIRST
-> step and personal details ("Your Details") is the SECOND-LAST page, just
-> before the estimate. New order: Driveway Size → Area detail → Concrete
-> Finish → Existing Surface → Driveway Slope → Drainage → Project Photos →
-> Your Details → Your Estimate. (Section headings below are grouped by screen,
-> not renumbered.)
+> **Step order:** personal details lead, then driveway measurement, then the
+> estimate: Customer details → Driveway Size → Area detail → Concrete Finish →
+> Existing Surface → Driveway Slope → Drainage → Project Photos → Your Estimate.
+> The first card shows the hero header (no orange title); every later card shows
+> an orange centered title with its instruction as a centered subtitle beneath.
 
 ---
 
@@ -67,12 +66,11 @@ Error messages:
 
 ## Step 2 — Driveway Size (choose how to measure)
 
-- Title: _(none — this is now the first card, so the hero header sits above it
-  and the orange "Driveway Size" title is removed)_
+- Title: `Driveway Size`
 - Question label (shown as a centered subtitle): `How would you like to measure your driveway?`
 
 > Note: on every step the instruction/question label (e.g. "Select your preferred
-> finish") now renders as a centered grey subtitle directly under the orange title,
+> finish") renders as a centered grey subtitle directly under the orange title,
 > mirroring the first page's headline + subheadline.
 - Options:
   1. `I know the total square metres`

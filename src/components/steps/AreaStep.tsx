@@ -18,6 +18,7 @@ export function AreaStep({ errors }: { errors: StepErrors }) {
 
   return (
     <div className="form-section">
+      <h2>Driveway Size</h2>
       <div className="form-group">
         <label className="step-question">
           How would you like to measure your driveway?

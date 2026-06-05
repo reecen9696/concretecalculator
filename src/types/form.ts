@@ -20,10 +20,10 @@ export type StepId =
 
 /**
  * Steps that count toward the visible progress bar, in display order.
- * Driveway measurement leads; personal details are collected last (just
- * before the estimate).
+ * Personal details lead; the estimate is last.
  */
 export const STEP_ORDER: StepId[] = [
+  "customer",
   "area",
   "area-detail",
   "finish",
@@ -31,7 +31,6 @@ export const STEP_ORDER: StepId[] = [
   "slope",
   "drainage",
   "photos",
-  "customer",
   "estimate",
 ];
 
@@ -107,7 +106,7 @@ export interface FormState {
 }
 
 export const INITIAL_FORM_STATE: FormState = {
-  step: "area",
+  step: "customer",
   customer: { name: "", phone: "", email: "", suburb: "" },
   area: { totalArea: "", sections: [] },
   plans: [],

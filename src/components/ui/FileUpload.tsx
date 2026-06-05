@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { uploadFile } from "@/lib/upload";
+import { CameraIcon } from "@/components/ui/icons";
 import type { UploadedFile } from "@/types/form";
 
 interface FileUploadProps {
@@ -13,7 +14,7 @@ interface FileUploadProps {
   /** Top-of-widget instruction copy. */
   hint?: string;
   /** Icon shown in the drop zone. */
-  icon?: string;
+  icon?: ReactNode;
   promptLabel?: string;
   multiple?: boolean;
   /** When true, paints the dropzone red border (no message below). */
@@ -37,7 +38,7 @@ export function FileUpload({
   max = 5,
   accept = "image/*",
   hint,
-  icon = "📸",
+  icon = <CameraIcon />,
   promptLabel = "Click to upload",
   multiple = true,
   invalid,

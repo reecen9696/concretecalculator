@@ -1,5 +1,6 @@
 import { useFormStore } from "@/state/useFormStore";
 import { FileUpload } from "@/components/ui/FileUpload";
+import { DocumentIcon } from "@/components/ui/icons";
 import type { StepErrors } from "@/state/useFormStore";
 
 /**
@@ -171,7 +172,7 @@ export function AreaDetailStep({ errors }: { errors: StepErrors }) {
             onRemove={removePlan}
             max={3}
             accept="image/*,.pdf"
-            icon="📄"
+            icon={<DocumentIcon />}
             promptLabel="Click to upload plans or photos showing the driveway area"
             hint="Please highlight the driveway area as accurately as possible. We'll scale from this marked area to estimate your driveway size."
             invalid={!!errors.plans}
