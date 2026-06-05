@@ -6,10 +6,6 @@
  * that format. Two-column key/value tables for customer + project details,
  * line-item pricing breakdown, HUM finance summary with optimisation block
  * when it fired, prominent final-estimate box, repayment box, review flags.
- *
- * `buildLukeRejectionEmail` + `buildCustomerRejectionEmail` are new for this
- * eligibility-gated build. Customer-facing copy is a TODO-marked placeholder
- * — wait for Luke's sign-off Monday before final ship.
  */
 
 import type { ValidatedPayload } from "./submit";
@@ -72,9 +68,7 @@ function timestamp(): string {
 // =============================================================================
 
 export function buildLukeInquiryEmail(payload: ValidatedPayload): string {
-  if (payload.outcome !== "eligible") return "";
-
-  const { customer, eligibility, project, estimate, plans, photos } = payload;
+  const { customer, project, estimate, plans, photos } = payload;
 
   const sectionsHtml =
     project.areaMethod === "sections" && project.areaSections?.length
@@ -118,14 +112,6 @@ export function buildLukeInquiryEmail(payload: ValidatedPayload): string {
         <tr><td class="lbl">Slope:</td><td>${titleCase(project.slope)}</td></tr>
         <tr><td class="lbl">Drainage:</td><td>${titleCase(project.drainage)}${project.stripDrainLengthM ? ` (≈ ${project.stripDrainLengthM}m strip drain)` : ""}</td></tr>
       </table>
-    </div>
-
-    <div class="section">
-      <h3>HUM Finance Pre-Check</h3>
-      <table class="kv">
-        ${eligibilityRows(eligibility)}
-      </table>
-      <p style="margin:8px 0 0 0;color:${C.green};font-weight:600;">✓ Eligible — customer routed to HUM portal.</p>
     </div>
 
     ${pricingHtml}
@@ -188,9 +174,7 @@ function buildAttachmentsSection(
 }
 
 function buildPricingSection(
-  estimate: NonNullable<
-    Extract<ValidatedPayload, { outcome: "eligible" }>["estimate"]
-  >,
+  estimate: NonNullable<ValidatedPayload["estimate"]>,
 ): string {
   const lineItems = estimate.lineItems
     .map(
@@ -269,124 +253,6 @@ function buildPricingSection(
 
     ${flagsHtml}
   `;
-}
-
-function eligibilityRows(elig: {
-  residency?: string;
-  income?: string;
-  employment?: string;
-  bankruptcy?: string;
-}): string {
-  const fmt = (v: string | undefined) =>
-    v ? escapeHtml(titleCase(v)) : "<em>(not answered)</em>";
-  return `
-    <tr><td class="lbl">Residency:</td><td>${fmt(elig.residency)}</td></tr>
-    <tr><td class="lbl">Income band:</td><td>${escapeHtml(elig.income ?? "(not answered)")}</td></tr>
-    <tr><td class="lbl">Employment:</td><td>${fmt(elig.employment)}</td></tr>
-    <tr><td class="lbl">Bankruptcy (last 5y):</td><td>${fmt(elig.bankruptcy)}</td></tr>
-  `;
-}
-
-// =============================================================================
-// Rejection emails
-// =============================================================================
-
-export function buildLukeRejectionEmail(payload: ValidatedPayload): string {
-  if (payload.outcome !== "rejected") return "";
-  const { customer, eligibility, failedCriteria } = payload;
-
-  const criteriaList =
-    failedCriteria.length > 0
-      ? `<ul>${failedCriteria.map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>`
-      : "<p><em>No criteria failed — investigate.</em></p>";
-
-  return wrap(
-    `REJECTED inquiry — manual follow-up`,
-    `
-    <div class="section">
-      <p style="background:${C.brandSoft};padding:12px;border-left:4px solid ${C.brand};font-weight:600;">
-        Customer failed the HUM Finance pre-check. They've been sent the
-        customer rejection email and shown the thank-you screen. They are
-        expecting a personal follow-up within 24 hours.
-      </p>
-    </div>
-
-    <div class="section">
-      <h3>Customer Details</h3>
-      <table class="kv">
-        <tr><td class="lbl">Name:</td><td>${escapeHtml(customer.name)}</td></tr>
-        <tr><td class="lbl">Phone:</td><td><a href="tel:${escapeHtml(customer.phone)}">${escapeHtml(customer.phone)}</a></td></tr>
-        <tr><td class="lbl">Email:</td><td><a href="mailto:${escapeHtml(customer.email)}">${escapeHtml(customer.email)}</a></td></tr>
-        <tr><td class="lbl">Suburb/Postcode:</td><td>${escapeHtml(customer.suburb)}</td></tr>
-      </table>
-    </div>
-
-    <div class="section">
-      <h3>Eligibility Answers</h3>
-      <table class="kv">
-        ${eligibilityRows(eligibility)}
-      </table>
-    </div>
-
-    <div class="section">
-      <h3>Failed Criteria</h3>
-      ${criteriaList}
-    </div>
-
-    <div class="section">
-      <p style="color:${C.mute};font-size:12px;">
-        Submitted ${timestamp()}.<br/>
-        Reply directly to this email to reach the customer
-        (${escapeHtml(customer.email)}).
-      </p>
-    </div>
-    `,
-  );
-}
-
-// TODO(monday): Replace this placeholder body with Luke's exact final copy
-// (signed off Monday). Also confirm phone number to insert at the contact
-// line. See TODO.md.
-export function buildCustomerRejectionEmail(payload: ValidatedPayload): string {
-  if (payload.outcome !== "rejected") return "";
-  const { customer } = payload;
-  const firstName = customer.name.trim().split(/\s+/)[0] || "there";
-
-  return wrap(
-    `About your driveway enquiry — Smooth Concrete`,
-    `
-    <div class="section" style="font-size:14px;line-height:1.65;">
-      <p>Hi ${escapeHtml(firstName)},</p>
-
-      <p>
-        Thanks for your interest in Smooth Concrete and for taking the time
-        to complete our finance pre-check.
-      </p>
-
-      <p>
-        Based on the information you provided, HUM Finance may not be
-        available for your situation at this time. The good news is we have
-        other payment options that may suit you better.
-      </p>
-
-      <p>
-        A member of our team will be in touch within 24 hours to discuss
-        alternatives, which can include direct payment plans, smaller-scope
-        project options, or other finance partners.
-      </p>
-
-      <p>
-        If you'd prefer to reach out first, please reply to this email or
-        call us on <strong>[Luke's number]</strong>.
-      </p>
-
-      <p style="margin-top:24px;">
-        Kind regards,<br/>
-        <strong>Smooth Concrete</strong>
-      </p>
-    </div>
-    `,
-  );
 }
 
 // =============================================================================

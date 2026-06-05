@@ -1,15 +1,14 @@
 /**
- * Pricing parity script — prints output in the same shape as
- * originalcalc/backend/pricing_engine.py's __main__ block, plus extra cases
- * that exercise optimisation, bracket boundaries, and the project minimum.
- *
- * The intent is that you can run this and visually diff against the Python
- * reference to confirm cent-for-cent parity.
+ * Pricing parity script — prints the full estimate breakdown for a spread of
+ * cases (bracket boundaries, the former optimisation case, the project minimum).
  *
  *     npm run parity
  *
- * The "official" reference case (50m² exposed aggregate, flat, no removal,
- * no drain) is the first block, identical to Python's __main__.
+ * NOTE: the line-item maths still mirrors originalcalc/backend/pricing_engine.py,
+ * but the finance layer has DIVERGED — this engine now applies a flat 15%
+ * merchant fee + a fixed 78-fortnight term on every quote (see CALCULATIONS.md
+ * Steps 9–11), so the finance/repayment figures will NOT match the old tiered
+ * Python reference. The "bracket" rows print as "Flat rate @ 15%".
  */
 
 import {

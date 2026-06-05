@@ -59,6 +59,15 @@ export interface PricingConfig {
     boomRequiredAbove: number;
   };
   minimumProjectPrice: number;
+  /** Flat merchant/finance fee applied to every quote (e.g. 0.15 = 15%). */
+  financeFeeRate: number;
+  /** Fixed repayment term, in fortnights, quoted on every estimate. */
+  financeTermFortnights: number;
+  /**
+   * Legacy tiered HUM brackets. No longer drive the fee/term (a flat
+   * `financeFeeRate` + `financeTermFortnights` do). Retained for
+   * forward-compatibility and the standalone `getHumBracket` lookup.
+   */
   humBrackets: HumBracket[];
   humOptimization: {
     enabled: boolean;
@@ -108,6 +117,10 @@ export const PRICING: PricingConfig = {
     boomRequiredAbove: 50,
   },
   minimumProjectPrice: 6500,
+  // Flat finance fee + fixed (maximum) term — quoted on every estimate so the
+  // figure is a ceiling, never an under-quote. Replaces the tiered brackets.
+  financeFeeRate: 0.15,
+  financeTermFortnights: 78,
   humBrackets: [
     { from: 80, to: 1000, fortnights: 6, fee: 4.0 },
     { from: 1000.01, to: 2000, fortnights: 13, fee: 4.67 },

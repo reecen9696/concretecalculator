@@ -3,12 +3,9 @@
  * estimate.
  *
  * Step routing rules:
- *   customer → elig-residency → elig-income → elig-employment → elig-bankruptcy
- *   After elig-bankruptcy: evaluate eligibility
- *     → rejected   (any criterion fails)
- *     → area       (all pass)
- *   area → finish → removal → slope → drainage → photos → estimate
- *   estimate → outcome (handled by submission flow, not store)
+ *   customer → area → area-detail → finish → removal → slope → drainage
+ *            → photos → estimate
+ *   estimate → submission (handled by the estimate step, not the store)
  */
 
 import { create } from "zustand";
@@ -18,13 +15,11 @@ import {
   type AreaSection,
   type CustomerDetails,
   type DrainageState,
-  type EligibilityAnswers,
   type FormState,
   type StepId,
   type UploadedFile,
 } from "@/types/form";
 import type { Finish, Slope } from "@/lib/pricing";
-import { evaluateEligibility } from "@/lib/eligibility";
 
 export { STEP_ORDER };
 
@@ -34,7 +29,6 @@ interface FormActions {
   back: () => void;
   reset: () => void;
   setCustomer: (patch: Partial<CustomerDetails>) => void;
-  setEligibility: (patch: Partial<EligibilityAnswers>) => void;
   setArea: (patch: Partial<FormState["area"]>) => void;
   addAreaSection: () => void;
   removeAreaSection: (id: string) => void;
@@ -62,13 +56,6 @@ export const useFormStore = create<FormStore>((set) => ({
 
   next: () =>
     set((s) => {
-      // After answering the bankruptcy question (last eligibility sub-step),
-      // evaluate eligibility before continuing.
-      if (s.step === "elig-bankruptcy") {
-        const result = evaluateEligibility(s.eligibility);
-        if (result.incomplete) return s; // validation should catch this upstream
-        if (!result.eligible) return { step: "rejected", outcome: "rejected" };
-      }
       const idx = STEP_ORDER.indexOf(s.step);
       const nextIdx = Math.min(idx + 1, STEP_ORDER.length - 1);
       return { step: STEP_ORDER[nextIdx] };
@@ -76,10 +63,6 @@ export const useFormStore = create<FormStore>((set) => ({
 
   back: () =>
     set((s) => {
-      // From rejected screen, "back" returns to the bankruptcy question
-      // (since that's where the rejection was decided).
-      if (s.step === "rejected")
-        return { step: "elig-bankruptcy", outcome: null };
       const idx = STEP_ORDER.indexOf(s.step);
       const prevIdx = Math.max(idx - 1, 0);
       return { step: STEP_ORDER[prevIdx] };
@@ -89,9 +72,6 @@ export const useFormStore = create<FormStore>((set) => ({
 
   setCustomer: (patch) =>
     set((s) => ({ customer: { ...s.customer, ...patch } })),
-
-  setEligibility: (patch) =>
-    set((s) => ({ eligibility: { ...s.eligibility, ...patch } })),
 
   setArea: (patch) => set((s) => ({ area: { ...s.area, ...patch } })),
 
@@ -165,22 +145,12 @@ export function validateStep(state: FormState): StepValidation {
         errors.suburb = "Suburb or postcode is required.";
       break;
     }
-    case "elig-residency":
-      if (!state.eligibility.residency)
-        errors.residency = "Please select an option.";
-      break;
-    case "elig-income":
-      if (!state.eligibility.income) errors.income = "Please select an option.";
-      break;
-    case "elig-employment":
-      if (!state.eligibility.employment)
-        errors.employment = "Please select an option.";
-      break;
-    case "elig-bankruptcy":
-      if (!state.eligibility.bankruptcy)
-        errors.bankruptcy = "Please select an option.";
-      break;
     case "area": {
+      if (!state.area.method)
+        errors.method = "Please choose how you'd like to measure your driveway.";
+      break;
+    }
+    case "area-detail": {
       const m = state.area.method;
       if (!m) {
         errors.method = "Please choose how you'd like to measure your driveway.";

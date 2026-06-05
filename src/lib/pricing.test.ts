@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { calculateEstimate, getHumBracket } from "./pricing";
 import { formatCurrency, roundHalfEven } from "./format";
 
-describe("pricing engine — parity with Python reference", () => {
-  it("matches the canonical 50m² exposed-aggregate case", () => {
+describe("pricing engine — flat finance fee + fixed term", () => {
+  it("matches the canonical 50m² exposed-aggregate case (flat 15%, 78 fortnights)", () => {
     const e = calculateEstimate({
       finish: "exposed_aggregate",
       areaSqm: 50,
@@ -14,18 +14,19 @@ describe("pricing engine — parity with Python reference", () => {
 
     expect(formatCurrency(e.lineItems[0].amount)).toBe("$11,000.00");
     expect(formatCurrency(e.originalSubtotal)).toBe("$12,500.00");
-    expect(e.originalBracket.feePercent).toBe(17.98);
-    expect(formatCurrency(e.financeAdjustedExGst)).toBe("$15,240.19");
-    expect(formatCurrency(e.gstAmount)).toBe("$1,524.02");
-    expect(formatCurrency(e.finalIncGst)).toBe("$16,764.20");
+    expect(e.originalBracket.feePercent).toBe(15);
+    expect(formatCurrency(e.financeAdjustedExGst)).toBe("$14,705.88");
+    expect(formatCurrency(e.gstAmount)).toBe("$1,470.59");
+    expect(formatCurrency(e.finalIncGst)).toBe("$16,176.47");
     expect(e.repayment.fortnights).toBe(78);
-    expect(formatCurrency(e.repayment.fortnightly)).toBe("$214.93");
-    expect(formatCurrency(e.repayment.weekly)).toBe("$107.46");
+    expect(formatCurrency(e.repayment.fortnightly)).toBe("$207.39");
+    expect(formatCurrency(e.repayment.weekly)).toBe("$103.70");
   });
 
-  it("triggers optimisation when discount cost < fee savings", () => {
-    // 50.5m² natural_grey + excav = $7,055 subtotal (bracket 6).
-    // Discounting to $7,000 (bracket 5) costs $55, saves >$300 in merchant fees.
+  it("applies the flat fee with no bracket optimisation (former optimisation case)", () => {
+    // 50.5m² natural_grey + excav = $7,055 subtotal. Under the old tiered
+    // brackets this nudged down a bracket; under a flat 15% there are no
+    // brackets to optimise across, so the fee/term are constant.
     const e = calculateEstimate({
       finish: "natural_grey",
       areaSqm: 50.5,
@@ -33,18 +34,16 @@ describe("pricing engine — parity with Python reference", () => {
       slope: "flat_minimal",
       drainage: "no",
     });
-    expect(e.optimizationOccurred).toBe(true);
-    expect(e.discountApplied).toBe(55);
-    expect(e.optimizedBracket.feePercent).toBe(11.82);
-    expect(formatCurrency(e.financeAdjustedExGst)).toBe("$7,938.31");
-    expect(formatCurrency(e.finalIncGst)).toBe("$8,732.14");
-    expect(e.repayment.fortnights).toBe(52);
-    expect(formatCurrency(e.repayment.weekly)).toBe("$83.96");
+    expect(e.optimizationOccurred).toBe(false);
+    expect(e.discountApplied).toBe(0);
+    expect(e.optimizedBracket.feePercent).toBe(15);
+    expect(formatCurrency(e.financeAdjustedExGst)).toBe("$8,300.00");
+    expect(formatCurrency(e.finalIncGst)).toBe("$9,130.00");
+    expect(e.repayment.fortnights).toBe(78);
+    expect(formatCurrency(e.repayment.weekly)).toBe("$58.53");
   });
 
-  it("does not optimise when discount needed exceeds $450", () => {
-    // 60m² coloured + excav + demo + slope = $12,500 → bracket 7.
-    // Discount to fit bracket 6 ($10k) would need $2,500 → too large.
+  it("never optimises — fee and term are flat regardless of subtotal", () => {
     const e = calculateEstimate({
       finish: "coloured",
       areaSqm: 60,
@@ -53,7 +52,8 @@ describe("pricing engine — parity with Python reference", () => {
       drainage: "no",
     });
     expect(e.optimizationOccurred).toBe(false);
-    expect(e.originalBracket.feePercent).toBe(17.98);
+    expect(e.originalBracket.feePercent).toBe(15);
+    expect(e.repayment.fortnights).toBe(78);
   });
 
   it("applies the $6,500 minimum-floor to tiny jobs and flags it", () => {

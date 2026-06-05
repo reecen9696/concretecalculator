@@ -234,74 +234,16 @@ function bracketSnapshot(b: HumBracket): BracketSnapshot {
   };
 }
 
+/**
+ * Legacy bracket lookup. No longer drives pricing (a flat fee does — see
+ * `calculateEstimate`), but kept for forward-compatibility and exercised by
+ * the unit tests so the bracket table stays valid if tiers are reintroduced.
+ */
 export function getHumBracket(amount: number): BracketSnapshot {
   for (const b of PRICING.humBrackets) {
     if (b.from <= amount && amount <= b.to) return bracketSnapshot(b);
   }
   return bracketSnapshot(PRICING.humBrackets[PRICING.humBrackets.length - 1]);
-}
-
-/** Reverse-calc the finance-adjusted subtotal: subtotal / (1 - fee%). */
-export function applyHumFee(subtotalExGst: number): {
-  financeAdjustedExGst: number;
-  bracket: BracketSnapshot;
-} {
-  const bracket = getHumBracket(subtotalExGst);
-  const feeDecimal = bracket.feePercent / 100;
-  const financeAdjustedExGst = subtotalExGst / (1 - feeDecimal);
-  return { financeAdjustedExGst, bracket };
-}
-
-interface OptimizationResult {
-  shouldOptimize: boolean;
-  optimizedSubtotal?: number;
-  optimizedBracket?: BracketSnapshot;
-  discountAmount?: number;
-  details?: OptimizationDetails;
-}
-
-function checkOptimizationOpportunity(
-  currentSubtotal: number,
-  currentBracket: BracketSnapshot,
-  currentFinanceAdj: number,
-): OptimizationResult {
-  const maxDiscount = PRICING.humOptimization.maxDiscountAllowance;
-  const brackets = PRICING.humBrackets;
-
-  const idx = brackets.findIndex((b) => b.from === currentBracket.from);
-  if (idx <= 0) return { shouldOptimize: false };
-
-  const prevConfig = brackets[idx - 1];
-  const prevBracket = bracketSnapshot(prevConfig);
-
-  const maxInPrev = prevBracket.to;
-  const discountNeeded = currentSubtotal - maxInPrev;
-
-  if (discountNeeded <= 0 || discountNeeded > maxDiscount) {
-    return { shouldOptimize: false };
-  }
-
-  const optimizedSubtotal = maxInPrev;
-  const { financeAdjustedExGst: financeAdjOptimized } =
-    applyHumFee(optimizedSubtotal);
-
-  const feeSavings = currentFinanceAdj - financeAdjOptimized;
-  const netBenefit = feeSavings - discountNeeded;
-
-  if (netBenefit < 0) return { shouldOptimize: false };
-
-  return {
-    shouldOptimize: true,
-    optimizedSubtotal,
-    optimizedBracket: prevBracket,
-    discountAmount: discountNeeded,
-    details: {
-      reason: "Lower bracket improves margin despite discount",
-      feeSavings: roundHalfEven(feeSavings, 2),
-      discountAmount: roundHalfEven(discountNeeded, 2),
-      netBenefit: roundHalfEven(netBenefit, 2),
-    },
-  };
 }
 
 // =============================================================================
@@ -377,48 +319,40 @@ export function calculateEstimate(inputs: PricingInputs): Estimate {
     );
   }
 
-  const originalBracket = getHumBracket(flooredSubtotal);
-  const { financeAdjustedExGst: financeAdjOriginal } =
-    applyHumFee(flooredSubtotal);
+  // Finance: a single flat merchant fee + the maximum repayment term on every
+  // quote (replaces the old tiered HUM brackets). The HUM portal lets the
+  // customer pick a shorter term later, which only ever costs less — quoting the
+  // worst case here (longest term, highest fee) makes the estimate a ceiling,
+  // never an under-quote. Bracket optimisation is therefore inert; the bracket
+  // table + humOptimization remain in config for forward-compatibility only.
+  const financeBracket: BracketSnapshot = {
+    from: PRICING.minimumProjectPrice,
+    to: 999999,
+    fortnights: PRICING.financeTermFortnights,
+    feePercent: PRICING.financeFeeRate * 100,
+    rangeDesc: "Flat rate",
+  };
 
-  let optimizedSubtotal = flooredSubtotal;
-  let optimizedBracket = originalBracket;
-  let discountApplied = 0;
-  let optimizationOccurred = false;
-  let optimizationDetails: OptimizationDetails | null = null;
-
-  if (PRICING.humOptimization.enabled) {
-    const opt = checkOptimizationOpportunity(
-      flooredSubtotal,
-      originalBracket,
-      financeAdjOriginal,
-    );
-    if (opt.shouldOptimize) {
-      optimizedSubtotal = opt.optimizedSubtotal!;
-      optimizedBracket = opt.optimizedBracket!;
-      discountApplied = opt.discountAmount!;
-      optimizationOccurred = true;
-      optimizationDetails = opt.details!;
-    }
-  }
-
-  const { financeAdjustedExGst } = applyHumFee(optimizedSubtotal);
+  const financeAdjustedExGst = flooredSubtotal / (1 - PRICING.financeFeeRate);
   const gstAmount = financeAdjustedExGst * PRICING.gstRate;
   const finalIncGst = financeAdjustedExGst + gstAmount;
-  const repayment = calculateRepayments(finalIncGst, optimizedBracket.fortnights);
+  const repayment = calculateRepayments(
+    finalIncGst,
+    PRICING.financeTermFortnights,
+  );
 
   return {
     inputs,
     lineItems,
     rawSubtotal,
-    finalSubtotalExGst: optimizedSubtotal,
+    finalSubtotalExGst: flooredSubtotal,
     originalSubtotal: flooredSubtotal,
-    originalBracket,
-    optimizedSubtotal,
-    optimizedBracket,
-    discountApplied,
-    optimizationOccurred,
-    optimizationDetails,
+    originalBracket: financeBracket,
+    optimizedSubtotal: flooredSubtotal,
+    optimizedBracket: financeBracket,
+    discountApplied: 0,
+    optimizationOccurred: false,
+    optimizationDetails: null,
     financeAdjustedExGst,
     gstAmount,
     finalIncGst,

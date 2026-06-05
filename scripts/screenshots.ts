@@ -73,42 +73,17 @@ const shots: Shot[] = [
     },
   },
   {
-    name: "02-eligibility-empty",
-    reset: true,
-    setup: async (page) => {
-      await fillCustomer(page);
-      await clickContinue(page);
-    },
-  },
-  {
-    name: "02-eligibility-eligible-answers",
-    reset: true,
-    setup: async (page) => {
-      await fillCustomer(page);
-      await clickContinue(page);
-      await selectOption(page, /^Yes$/);                      // residency yes
-      await selectOption(page, /\$60,000 – \$100,000/);
-      await selectOption(page, /^Full-time$/);
-      // bankruptcy No is the first option visually under the last group;
-      // be explicit by clicking the radio under the bankruptcy fieldset
-      await page
-        .locator('input[name="bankruptcy"][value="no"]')
-        .locator("xpath=..")
-        .click();
-    },
-  },
-  {
     name: "03-area-empty",
     reset: true,
     setup: async (page) => {
-      await goToArea(page, "eligible");
+      await goToArea(page);
     },
   },
   {
     name: "03-area-total",
     reset: true,
     setup: async (page) => {
-      await goToArea(page, "eligible");
+      await goToArea(page);
       await selectOption(page, /I know the total m²/);
       await page.fill('input[step="0.1"]', "50");
     },
@@ -117,7 +92,7 @@ const shots: Shot[] = [
     name: "03-area-sections",
     reset: true,
     setup: async (page) => {
-      await goToArea(page, "eligible");
+      await goToArea(page);
       await selectOption(page, /Measure by section/);
       const lengthInputs = page.locator('input[placeholder="6"]');
       const widthInputs = page.locator('input[placeholder="3.5"]');
@@ -129,7 +104,7 @@ const shots: Shot[] = [
     name: "03-area-via-email",
     reset: true,
     setup: async (page) => {
-      await goToArea(page, "eligible");
+      await goToArea(page);
       await selectOption(page, /Send measurements via email/);
       await page.fill("textarea", "Roughly 3 car spaces wide, slight curve at the top.");
     },
@@ -138,7 +113,7 @@ const shots: Shot[] = [
     name: "04-finish",
     reset: true,
     setup: async (page) => {
-      await goToArea(page, "eligible");
+      await goToArea(page);
       await selectOption(page, /I know the total m²/);
       await page.fill('input[step="0.1"]', "50");
       await clickContinue(page);
@@ -149,7 +124,7 @@ const shots: Shot[] = [
     name: "05-removal",
     reset: true,
     setup: async (page) => {
-      await goToFinish(page, "eligible");
+      await goToFinish(page);
       await selectOption(page, /Exposed aggregate/);
       await clickContinue(page);
       await selectOption(page, /^Yes$/);
@@ -159,7 +134,7 @@ const shots: Shot[] = [
     name: "06-slope",
     reset: true,
     setup: async (page) => {
-      await goToFinish(page, "eligible");
+      await goToFinish(page);
       await selectOption(page, /Exposed aggregate/);
       await clickContinue(page);
       await selectOption(page, /^No$/); // removal No
@@ -171,7 +146,7 @@ const shots: Shot[] = [
     name: "07-drainage-no",
     reset: true,
     setup: async (page) => {
-      await goToFinish(page, "eligible");
+      await goToFinish(page);
       await selectOption(page, /Exposed aggregate/);
       await clickContinue(page);
       await selectOption(page, /^No$/);
@@ -185,7 +160,7 @@ const shots: Shot[] = [
     name: "07-drainage-yes-with-length",
     reset: true,
     setup: async (page) => {
-      await goToFinish(page, "eligible");
+      await goToFinish(page);
       await selectOption(page, /Exposed aggregate/);
       await clickContinue(page);
       await selectOption(page, /^No$/);
@@ -197,7 +172,7 @@ const shots: Shot[] = [
     },
   },
   {
-    name: "08-estimate-eligible-50m2-exposed",
+    name: "08-estimate-50m2-exposed",
     reset: true,
     setup: async (page) => {
       await goToEstimate(page, {
@@ -212,7 +187,7 @@ const shots: Shot[] = [
     name: "08-estimate-via-email",
     reset: true,
     setup: async (page) => {
-      await goToArea(page, "eligible");
+      await goToArea(page);
       await selectOption(page, /Send measurements via email/);
       await page.fill("textarea", "Long curving driveway, garage at end.");
       await clickContinue(page);
@@ -226,46 +201,15 @@ const shots: Shot[] = [
       await clickContinue(page);
     },
   },
-  {
-    name: "outcome-rejected",
-    reset: true,
-    setup: async (page) => {
-      await fillCustomer(page);
-      await clickContinue(page);
-      await selectOption(page, /^Yes$/);
-      await selectOption(page, /\$30,000 – \$60,000/);
-      await selectOption(page, /^Full-time$/);
-      // bankruptcy yes
-      await page
-        .locator('input[name="bankruptcy"][value="yes"]')
-        .locator("xpath=..")
-        .click();
-      await clickContinue(page);
-      await wait(700); // let auto-submit settle (will fail silently in dev)
-    },
-  },
 ];
 
-async function goToArea(page: Page, outcome: "eligible" | "rejected") {
+async function goToArea(page: Page) {
   await fillCustomer(page);
-  await clickContinue(page);
-  await selectOption(page, /^Yes$/);
-  await selectOption(
-    page,
-    outcome === "eligible" ? /\$60,000 – \$100,000/ : /Less than \$30,000/,
-  );
-  await selectOption(page, /^Full-time$/);
-  await page
-    .locator(
-      `input[name="bankruptcy"][value="${outcome === "eligible" ? "no" : "yes"}"]`,
-    )
-    .locator("xpath=..")
-    .click();
   await clickContinue(page);
 }
 
-async function goToFinish(page: Page, outcome: "eligible") {
-  await goToArea(page, outcome);
+async function goToFinish(page: Page) {
+  await goToArea(page);
   await selectOption(page, /I know the total m²/);
   await page.fill('input[step="0.1"]', "50");
   await clickContinue(page);
@@ -280,7 +224,7 @@ async function goToEstimate(
     drainage: RegExp;
   },
 ) {
-  await goToFinish(page, "eligible");
+  await goToFinish(page);
   await selectOption(page, picks.finish);
   await clickContinue(page);
   await selectOption(page, picks.removal);

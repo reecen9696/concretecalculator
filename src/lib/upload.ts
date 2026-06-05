@@ -28,18 +28,42 @@ export async function uploadFile(
   },
 ): Promise<UploadedFile> {
   const pathname = `inquiries/${today()}/${options.kind}/${file.name}`;
-  const result = await blobUpload(pathname, file, {
-    access: "public",
-    handleUploadUrl: "/api/upload-url",
-    onUploadProgress: (e) =>
-      options.onProgress?.({
-        percent: Math.round((e.loaded / e.total) * 100),
-      }),
-  });
-  return {
-    url: result.url,
-    filename: file.name,
-    contentType: file.type,
-    size: file.size,
-  };
+  try {
+    const result = await blobUpload(pathname, file, {
+      access: "public",
+      handleUploadUrl: "/api/upload-url",
+      onUploadProgress: (e) =>
+        options.onProgress?.({
+          percent: Math.round((e.loaded / e.total) * 100),
+        }),
+    });
+    return {
+      url: result.url,
+      filename: file.name,
+      contentType: file.type,
+      size: file.size,
+    };
+  } catch (err) {
+    // Local dev without Vercel Blob configured: /api/upload-url returns 503
+    // and the blob client throws "Failed to retrieve the client token". Rather
+    // than block the whole flow during local testing, fall back to an in-browser
+    // object URL so the form is still exercisable end-to-end. In production
+    // (where BLOB_READ_WRITE_TOKEN is set) the upload succeeds and we never get
+    // here; if it genuinely fails in prod we surface the error.
+    if (import.meta.env.DEV) {
+      console.warn(
+        "[upload] Vercel Blob not available — using a local preview URL. " +
+          "Configure BLOB_READ_WRITE_TOKEN (vercel env pull) for real uploads.",
+        err,
+      );
+      options.onProgress?.({ percent: 100 });
+      return {
+        url: URL.createObjectURL(file),
+        filename: file.name,
+        contentType: file.type,
+        size: file.size,
+      };
+    }
+    throw err;
+  }
 }

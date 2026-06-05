@@ -135,20 +135,16 @@
     }
   }
 
+  /* Step titles (e.g. "Driveway Size") — centered and tinted to match the
+     primary CTA / progress bar. This is the orange question-style heading;
+     the first step has no h2 (the "Get A Instant Estimate" header covers it). */
   .form-section h2 {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
     margin-bottom: 20px;
-    color: var(--text-light);
-    line-height: 1.25;
-  }
-  /* Subtitle modifier — used for question-style step headings (e.g.
-     each eligibility question). 4px smaller than the default h2,
-     centered, and tinted to match the primary CTA / progress bar. */
-  .form-section h2.subtitle {
-    font-size: 20px;
-    text-align: center;
     color: var(--primary);
+    text-align: center;
+    line-height: 1.25;
   }
   .form-section h3 {
     font-size: 14px;

@@ -7,20 +7,14 @@ import {
 import { Shell } from "@/components/Shell";
 import { ProgressBar } from "@/components/ProgressBar";
 import { CustomerDetailsStep } from "@/components/steps/CustomerDetailsStep";
-import {
-  ResidencyStep,
-  IncomeStep,
-  EmploymentStep,
-  BankruptcyStep,
-} from "@/components/steps/EligibilitySteps";
 import { AreaStep } from "@/components/steps/AreaStep";
+import { AreaDetailStep } from "@/components/steps/AreaDetailStep";
 import { FinishStep } from "@/components/steps/FinishStep";
 import { RemovalStep } from "@/components/steps/RemovalStep";
 import { SlopeStep } from "@/components/steps/SlopeStep";
 import { DrainageStep } from "@/components/steps/DrainageStep";
 import { PhotosStep } from "@/components/steps/PhotosStep";
 import { EstimateStep } from "@/components/steps/EstimateStep";
-import { RejectedScreen } from "@/components/steps/outcomes/RejectedScreen";
 
 export default function App() {
   const state = useFormStore();
@@ -47,7 +41,6 @@ export default function App() {
     state.back();
   };
 
-  const isRejected = state.step === "rejected";
   const isEstimate = state.step === "estimate";
   const isFirstStep = state.step === "customer";
   const isLastInputStep = state.step === "photos";
@@ -60,7 +53,7 @@ export default function App() {
       </div>
 
       {/* Pinned footer (buttons stuck to bottom) */}
-      {!isRejected && !isEstimate && (
+      {!isEstimate && (
         <div className="btn-row">
           {!isFirstStep && (
             <button
@@ -93,21 +86,9 @@ export default function App() {
         </div>
       )}
 
-      {isRejected && (
-        <div className="btn-row">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleBack}
-          >
-            ← Revise answers
-          </button>
-        </div>
-      )}
-
       {/* Bottom-pinned progress bar — absolute positioning means JSX
           order doesn't matter, but kept last for readability. */}
-      {!isRejected && <ProgressBar />}
+      <ProgressBar />
     </Shell>
   );
 }
@@ -117,16 +98,10 @@ function StepView({ errors }: { errors: StepErrors }) {
   switch (step) {
     case "customer":
       return <CustomerDetailsStep key={step} errors={errors} />;
-    case "elig-residency":
-      return <ResidencyStep key={step} errors={errors} />;
-    case "elig-income":
-      return <IncomeStep key={step} errors={errors} />;
-    case "elig-employment":
-      return <EmploymentStep key={step} errors={errors} />;
-    case "elig-bankruptcy":
-      return <BankruptcyStep key={step} errors={errors} />;
     case "area":
       return <AreaStep key={step} errors={errors} />;
+    case "area-detail":
+      return <AreaDetailStep key={step} errors={errors} />;
     case "finish":
       return <FinishStep key={step} errors={errors} />;
     case "removal":
@@ -139,8 +114,6 @@ function StepView({ errors }: { errors: StepErrors }) {
       return <PhotosStep key={step} errors={errors} />;
     case "estimate":
       return <EstimateStep key={step} />;
-    case "rejected":
-      return <RejectedScreen key={step} />;
     default:
       void (step satisfies never);
       return null;

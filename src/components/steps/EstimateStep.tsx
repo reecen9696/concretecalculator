@@ -34,9 +34,7 @@ export function EstimateStep() {
   }, [areaSqm, state]);
 
   const buildPayload = (): SubmissionPayload => ({
-    outcome: "eligible",
     customer: state.customer,
-    eligibility: state.eligibility,
     project:
       state.finish && state.hasRemoval !== undefined && state.slope &&
       state.drainage.answer

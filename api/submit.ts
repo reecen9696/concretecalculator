@@ -1,11 +1,8 @@
 /**
  * POST /api/submit — single Vercel serverless function.
  *
- * Validates the incoming payload, then sends emails via Resend:
- *
- *   outcome = "eligible"  → one inquiry email to Luke
- *   outcome = "rejected"  → one rejection-handover email to Luke
- *                          + one rejection-explanation email to the customer
+ * Validates the incoming payload, then sends one inquiry email to Luke
+ * via Resend.
  *
  * Returns { success: true } or { success: false, error }.
  *
@@ -22,11 +19,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { z } from "zod";
 import { Resend } from "resend";
-import {
-  buildLukeInquiryEmail,
-  buildLukeRejectionEmail,
-  buildCustomerRejectionEmail,
-} from "./emails";
+import { buildLukeInquiryEmail } from "./emails";
 
 // =============================================================================
 // Payload validation (mirrors src/types/form.ts → SubmissionPayload)
@@ -37,15 +30,6 @@ const customerSchema = z.object({
   phone: z.string().min(1).max(60),
   email: z.string().email().max(200),
   suburb: z.string().min(1).max(200),
-});
-
-const eligibilitySchema = z.object({
-  residency: z.enum(["yes", "no"]).optional(),
-  income: z.enum(["<30k", "30-60k", "60-100k", "100k+"]).optional(),
-  employment: z
-    .enum(["full_time", "part_time", "casual", "self_employed", "unemployed"])
-    .optional(),
-  bankruptcy: z.enum(["yes", "no"]).optional(),
 });
 
 const projectSchema = z.object({
@@ -116,23 +100,13 @@ const estimateSchema = z
   })
   .partial({ optimizationDetails: true });
 
-const payloadSchema = z.discriminatedUnion("outcome", [
-  z.object({
-    outcome: z.literal("eligible"),
-    customer: customerSchema,
-    eligibility: eligibilitySchema,
-    project: projectSchema,
-    plans: z.array(uploadedFileSchema).optional().default([]),
-    photos: z.array(uploadedFileSchema).optional().default([]),
-    estimate: estimateSchema.optional(),
-  }),
-  z.object({
-    outcome: z.literal("rejected"),
-    customer: customerSchema,
-    eligibility: eligibilitySchema,
-    failedCriteria: z.array(z.string()),
-  }),
-]);
+const payloadSchema = z.object({
+  customer: customerSchema,
+  project: projectSchema,
+  plans: z.array(uploadedFileSchema).optional().default([]),
+  photos: z.array(uploadedFileSchema).optional().default([]),
+  estimate: estimateSchema.optional(),
+});
 
 export type ValidatedPayload = z.infer<typeof payloadSchema>;
 
@@ -142,7 +116,7 @@ export type ValidatedPayload = z.infer<typeof payloadSchema>;
 
 const SENDER_EMAIL = process.env.SENDER_EMAIL || "onboarding@resend.dev";
 const INQUIRY_RECIPIENT =
-  process.env.INQUIRY_RECIPIENT_EMAIL || "lukeshah100@gmail.com";
+  process.env.INQUIRY_RECIPIENT_EMAIL || "luke@smoothconcrete.com.au";
 
 export default async function handler(
   req: VercelRequest,
@@ -179,33 +153,13 @@ export default async function handler(
   const apiKey = process.env.RESEND_API_KEY;
 
   try {
-    if (payload.outcome === "eligible") {
-      await sendEmail(apiKey, {
-        from: SENDER_EMAIL,
-        to: INQUIRY_RECIPIENT,
-        replyTo: payload.customer.email,
-        subject: buildEligibleSubject(payload),
-        html: buildLukeInquiryEmail(payload),
-      });
-    } else {
-      // Rejected: two emails.
-      await Promise.all([
-        sendEmail(apiKey, {
-          from: SENDER_EMAIL,
-          to: INQUIRY_RECIPIENT,
-          replyTo: payload.customer.email,
-          subject: `REJECTED inquiry — ${payload.customer.name}, manual follow-up`,
-          html: buildLukeRejectionEmail(payload),
-        }),
-        sendEmail(apiKey, {
-          from: SENDER_EMAIL,
-          to: payload.customer.email,
-          replyTo: INQUIRY_RECIPIENT,
-          subject: "About your driveway enquiry — Smooth Concrete",
-          html: buildCustomerRejectionEmail(payload),
-        }),
-      ]);
-    }
+    await sendEmail(apiKey, {
+      from: SENDER_EMAIL,
+      to: INQUIRY_RECIPIENT,
+      replyTo: payload.customer.email,
+      subject: buildEligibleSubject(payload),
+      html: buildLukeInquiryEmail(payload),
+    });
 
     res.status(200).json({ success: true });
   } catch (err) {
@@ -249,7 +203,6 @@ async function sendEmail(apiKey: string | undefined, args: EmailArgs) {
 }
 
 function buildEligibleSubject(p: ValidatedPayload): string {
-  if (p.outcome !== "eligible") return "Driveway Inquiry";
   const name = p.customer.name;
   if (!p.estimate) {
     return `Driveway Inquiry (measurements pending) — ${name}`;

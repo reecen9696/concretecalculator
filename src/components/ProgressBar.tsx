@@ -5,9 +5,9 @@ export function ProgressBar() {
   const idx = STEP_ORDER.indexOf(step);
   if (idx < 0) return null;
   // Progress maps over the input steps (customer → photos), not the
-  // outcome (estimate). When the customer lands on the photos step
-  // they've filled in everything that affects pricing, so the bar
-  // reads 100% there. Estimate is treated as 100% too (clamped).
+  // estimate. When the customer lands on the photos step they've filled
+  // in everything that affects pricing, so the bar reads 100% there.
+  // Estimate is treated as 100% too (clamped).
   // Denominator = last input step idx = STEP_ORDER.length - 2.
   const denom = Math.max(STEP_ORDER.length - 2, 1);
   const pct = Math.min((idx / denom) * 100, 100);

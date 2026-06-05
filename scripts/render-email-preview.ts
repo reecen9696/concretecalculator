@@ -2,15 +2,11 @@
  * Dump rendered email HTML to /tmp so I can eyeball it.
  *
  *     npx tsx scripts/render-email-preview.ts
- *     open /tmp/email-{eligible,plans-only,rejected-luke,rejected-customer}.html
+ *     open /tmp/email-{eligible,plans-only}.html
  */
 
 import { writeFileSync } from "node:fs";
-import {
-  buildLukeInquiryEmail,
-  buildLukeRejectionEmail,
-  buildCustomerRejectionEmail,
-} from "../api/emails";
+import { buildLukeInquiryEmail } from "../api/emails";
 
 const SAMPLE_PHOTO = {
   url: "https://placehold.co/600x400/333/fff?text=Street+View",
@@ -26,18 +22,11 @@ const SAMPLE_PLAN = {
 };
 
 const eligibleWithEstimate = {
-  outcome: "eligible" as const,
   customer: {
     name: "Jane Smith",
     phone: "0412 345 678",
     email: "jane@example.com",
     suburb: "Docklands VIC 3008",
-  },
-  eligibility: {
-    residency: "yes" as const,
-    income: "60-100k" as const,
-    employment: "full_time" as const,
-    bankruptcy: "no" as const,
   },
   project: {
     areaSqm: 50,
@@ -50,31 +39,31 @@ const eligibleWithEstimate = {
   plans: [],
   photos: [SAMPLE_PHOTO, { ...SAMPLE_PHOTO, filename: "garage-view.jpg" }],
   estimate: {
-    finalIncGst: 16764.2,
-    financeAdjustedExGst: 15240.19,
-    gstAmount: 1524.02,
+    finalIncGst: 16176.47,
+    financeAdjustedExGst: 14705.88,
+    gstAmount: 1470.59,
     originalSubtotal: 12500,
     optimizationOccurred: false,
     discountApplied: 0,
     originalBracket: {
-      from: 10000.01,
-      to: 15000,
+      from: 6500,
+      to: 999999,
       fortnights: 78,
-      feePercent: 17.98,
-      rangeDesc: "$10,000–$15,000",
+      feePercent: 15,
+      rangeDesc: "Flat rate",
     },
     optimizedBracket: {
-      from: 10000.01,
-      to: 15000,
+      from: 6500,
+      to: 999999,
       fortnights: 78,
-      feePercent: 17.98,
-      rangeDesc: "$10,000–$15,000",
+      feePercent: 15,
+      rangeDesc: "Flat rate",
     },
     repayment: {
       termWeeks: 156,
       fortnights: 78,
-      fortnightly: 214.93,
-      weekly: 107.46,
+      fortnightly: 207.39,
+      weekly: 103.7,
     },
     lineItems: [
       { description: "Exposed Aggregate: $220/m² × 50m²", amount: 11000 },
@@ -90,18 +79,11 @@ const eligibleWithEstimate = {
 };
 
 const eligiblePlansOnly = {
-  outcome: "eligible" as const,
   customer: {
     name: "Plans Customer",
     phone: "0400 999 888",
     email: "plans@example.com",
     suburb: "Brunswick VIC 3056",
-  },
-  eligibility: {
-    residency: "yes" as const,
-    income: "100k+" as const,
-    employment: "self_employed" as const,
-    bankruptcy: "no" as const,
   },
   project: {
     areaSqm: 0,
@@ -116,23 +98,6 @@ const eligiblePlansOnly = {
   photos: [SAMPLE_PHOTO],
 };
 
-const rejected = {
-  outcome: "rejected" as const,
-  customer: {
-    name: "Test Reject",
-    phone: "0412 345 678",
-    email: "reject@example.com",
-    suburb: "Footscray VIC 3011",
-  },
-  eligibility: {
-    residency: "yes" as const,
-    income: "30-60k" as const,
-    employment: "casual" as const,
-    bankruptcy: "yes" as const,
-  },
-  failedCriteria: ["Bankruptcy declared in the last 5 years."],
-};
-
 writeFileSync(
   "/tmp/email-eligible.html",
   buildLukeInquiryEmail(eligibleWithEstimate),
@@ -141,15 +106,5 @@ writeFileSync(
   "/tmp/email-plans-only.html",
   buildLukeInquiryEmail(eligiblePlansOnly),
 );
-writeFileSync(
-  "/tmp/email-rejected-luke.html",
-  buildLukeRejectionEmail(rejected),
-);
-writeFileSync(
-  "/tmp/email-rejected-customer.html",
-  buildCustomerRejectionEmail(rejected),
-);
 
-console.log(
-  "Rendered to /tmp/email-{eligible,plans-only,rejected-luke,rejected-customer}.html",
-);
+console.log("Rendered to /tmp/email-{eligible,plans-only}.html");

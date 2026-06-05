@@ -1,6 +1,6 @@
 /**
- * Form types — the shape of what the customer fills in, the eligibility
- * answers, uploaded files, and the final submission payload sent to /api/submit.
+ * Form types — the shape of what the customer fills in, uploaded files, and
+ * the final submission payload sent to /api/submit.
  *
  * Pricing types (Estimate, LineItem, etc.) live in src/lib/pricing.ts.
  */
@@ -9,27 +9,20 @@ import type { Drainage, Finish, Slope } from "@/lib/pricing";
 
 export type StepId =
   | "customer"
-  | "elig-residency"
-  | "elig-income"
-  | "elig-employment"
-  | "elig-bankruptcy"
   | "area"
+  | "area-detail"
   | "finish"
   | "removal"
   | "slope"
   | "drainage"
   | "photos"
-  | "estimate"
-  | "rejected"; // outcome screen
+  | "estimate";
 
-/** Steps that count toward the visible progress bar (excludes outcome). */
+/** Steps that count toward the visible progress bar. */
 export const STEP_ORDER: StepId[] = [
   "customer",
-  "elig-residency",
-  "elig-income",
-  "elig-employment",
-  "elig-bankruptcy",
   "area",
+  "area-detail",
   "finish",
   "removal",
   "slope",
@@ -37,8 +30,6 @@ export const STEP_ORDER: StepId[] = [
   "photos",
   "estimate",
 ];
-
-export type Outcome = "eligible" | "rejected";
 
 // =============================================================================
 // Step 1: Customer details
@@ -52,30 +43,7 @@ export interface CustomerDetails {
 }
 
 // =============================================================================
-// Steps 2–5: Eligibility (one question per step)
-// =============================================================================
-// TODO(monday): Replace placeholder enums + copy with Luke's documented
-// HUM Finance criteria. See TODO.md.
-
-export type ResidencyAnswer = "yes" | "no";
-export type IncomeBand = "<30k" | "30-60k" | "60-100k" | "100k+";
-export type EmploymentStatus =
-  | "full_time"
-  | "part_time"
-  | "casual"
-  | "self_employed"
-  | "unemployed";
-export type BankruptcyAnswer = "yes" | "no";
-
-export interface EligibilityAnswers {
-  residency?: ResidencyAnswer;
-  income?: IncomeBand;
-  employment?: EmploymentStatus;
-  bankruptcy?: BankruptcyAnswer;
-}
-
-// =============================================================================
-// Step 6: Area (total / sections / plans)
+// Step 2: Area (total / sections / plans)
 // =============================================================================
 
 export type AreaMethod = "total" | "sections" | "plans";
@@ -94,7 +62,7 @@ export interface AreaState {
 }
 
 // =============================================================================
-// Step 10: Drainage
+// Drainage
 // =============================================================================
 
 export interface DrainageState {
@@ -123,7 +91,6 @@ export interface UploadedFile {
 export interface FormState {
   step: StepId;
   customer: CustomerDetails;
-  eligibility: EligibilityAnswers;
   area: AreaState;
   /** Site plan / dimensioned drawings uploaded inline at the area step. */
   plans: UploadedFile[];
@@ -133,19 +100,15 @@ export interface FormState {
   drainage: DrainageState;
   /** Project photos uploaded at the dedicated photos step. */
   photos: UploadedFile[];
-  /** Set to "rejected" the moment the eligibility check fails. */
-  outcome: Outcome | null;
 }
 
 export const INITIAL_FORM_STATE: FormState = {
   step: "customer",
   customer: { name: "", phone: "", email: "", suburb: "" },
-  eligibility: {},
   area: { totalArea: "", sections: [] },
   plans: [],
   drainage: { lengthM: "" },
   photos: [],
-  outcome: null,
 };
 
 // =============================================================================
@@ -155,12 +118,7 @@ export const INITIAL_FORM_STATE: FormState = {
 import type { Estimate } from "@/lib/pricing";
 
 export interface SubmissionPayload {
-  outcome: Outcome;
   customer: CustomerDetails;
-  eligibility: EligibilityAnswers;
-  /** Reasons the eligibility check failed — present when outcome === "rejected". */
-  failedCriteria?: string[];
-  /** Full project details + estimate — present when outcome === "eligible". */
   project?: {
     areaSqm: number;
     areaMethod: AreaMethod;
@@ -171,7 +129,7 @@ export interface SubmissionPayload {
     drainage: Drainage;
     stripDrainLengthM?: number;
   };
-  /** Blob URLs of uploaded files (plans + photos), present on eligible path. */
+  /** Blob URLs of uploaded files (plans + photos). */
   plans?: UploadedFile[];
   photos?: UploadedFile[];
   estimate?: Estimate;
