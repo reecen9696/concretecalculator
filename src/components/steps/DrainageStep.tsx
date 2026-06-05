@@ -16,7 +16,9 @@ export function DrainageStep({ errors }: { errors: StepErrors }) {
     <div className="form-section">
       <h2>Drainage</h2>
       <div className="form-group">
-        <label>Does water naturally fall back toward the garage?</label>
+        <label className="step-question">
+          Does water naturally fall back toward the garage?
+        </label>
         {OPTIONS.map(({ v, l }) => (
           <RadioRow
             key={v}

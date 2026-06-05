@@ -24,7 +24,7 @@ export function FinishStep({ errors }: { errors: StepErrors }) {
     <div className="form-section">
       <h2>Concrete Finish</h2>
       <div className="form-group">
-        <label>Select your preferred finish</label>
+        <label className="step-question">Select your preferred finish</label>
         {OPTIONS.map(({ v, title, sub }) => (
           <RadioRow
             key={v}

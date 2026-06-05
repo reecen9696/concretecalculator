@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   useFormStore,
   validateStep,
+  STEP_ORDER,
   type StepErrors,
 } from "@/state/useFormStore";
 import { Shell } from "@/components/Shell";
@@ -41,9 +42,11 @@ export default function App() {
     state.back();
   };
 
+  const stepIdx = STEP_ORDER.indexOf(state.step);
   const isEstimate = state.step === "estimate";
-  const isFirstStep = state.step === "customer";
-  const isLastInputStep = state.step === "photos";
+  const isFirstStep = stepIdx === 0;
+  // Last data-entry step = the one right before the estimate (now "customer").
+  const isLastInputStep = stepIdx === STEP_ORDER.length - 2;
 
   return (
     <Shell>

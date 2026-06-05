@@ -8,7 +8,7 @@ export function PhotosStep({ errors }: { errors: StepErrors }) {
     <div className="form-section">
       <h2>Project Photos</h2>
       <div className="form-group">
-        <label>Upload at least one photo</label>
+        <label className="step-question">Upload at least one photo</label>
         <FileUpload
           kind="photos"
           files={photos}

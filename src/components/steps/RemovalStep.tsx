@@ -8,7 +8,9 @@ export function RemovalStep({ errors }: { errors: StepErrors }) {
     <div className="form-section">
       <h2>Existing Surface</h2>
       <div className="form-group">
-        <label>Is there an existing driveway or surface to remove?</label>
+        <label className="step-question">
+          Is there an existing driveway or surface to remove?
+        </label>
         <RadioRow
           name="removal"
           value="no"

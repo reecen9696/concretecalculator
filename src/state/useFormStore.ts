@@ -3,8 +3,8 @@
  * estimate.
  *
  * Step routing rules:
- *   customer → area → area-detail → finish → removal → slope → drainage
- *            → photos → estimate
+ *   area → area-detail → finish → removal → slope → drainage → photos
+ *        → customer → estimate
  *   estimate → submission (handled by the estimate step, not the store)
  */
 

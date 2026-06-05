@@ -18,10 +18,10 @@ export function AreaStep({ errors }: { errors: StepErrors }) {
 
   return (
     <div className="form-section">
-      <h2>Driveway Size</h2>
-
       <div className="form-group">
-        <label>How would you like to measure your driveway?</label>
+        <label className="step-question">
+          How would you like to measure your driveway?
+        </label>
         <RadioRow
           name="area-method"
           value="total"

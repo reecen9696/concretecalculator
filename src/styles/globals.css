@@ -135,16 +135,27 @@
     }
   }
 
-  /* Step titles (e.g. "Driveway Size") — centered and tinted to match the
-     primary CTA / progress bar. This is the orange question-style heading;
-     the first step has no h2 (the "Get A Instant Estimate" header covers it). */
+  /* Step titles (e.g. "Concrete Finish") — centered and tinted to match the
+     primary CTA / progress bar. The first step has no h2 (the hero header
+     covers it). */
   .form-section h2 {
     font-size: 20px;
     font-weight: 700;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     color: var(--primary);
     text-align: center;
     line-height: 1.25;
+  }
+  /* Step subtitle — the instruction/question that sits directly under the
+     title, centered and greyed like the first-page subheadline
+     (e.g. "Select your preferred finish"). */
+  .form-section label.step-question {
+    display: block;
+    text-align: center;
+    font-weight: 400;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 18px 0;
   }
   .form-section h3 {
     font-size: 14px;
