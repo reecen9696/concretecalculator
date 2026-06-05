@@ -38,18 +38,18 @@ export function DrainageStep({ errors }: { errors: StepErrors }) {
 
       {drainage.answer === "yes" && (
         <Field
-          label="Approximate strip drain length (metres) — optional"
+          label="Roughly how wide is your garage? (metres)"
           type="number"
           step="0.5"
           min="0"
-          placeholder="6"
+          placeholder="e.g. 6"
           value={drainage.lengthM === "" ? "" : drainage.lengthM}
           onChange={(e) =>
             setDrainage({
               lengthM: e.target.value === "" ? "" : Number(e.target.value),
             })
           }
-          hint="Leave blank if unsure — we'll estimate during review."
+          hint="Water pooling means we'll fit a strip grate at the garage to drain it. A rough garage width is fine — we'll confirm the exact size on site."
         />
       )}
     </div>

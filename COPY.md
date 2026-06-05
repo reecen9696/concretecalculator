@@ -154,9 +154,9 @@ Error messages:
   2. `Yes, water pools at the garage`
   3. `Unsure`
 - If "Yes" is chosen, an extra field appears:
-  - Label: `Approximate strip drain length (metres) — optional`
-  - Placeholder: `6`
-  - Hint: `Leave blank if unsure — we'll estimate during review.`
+  - Label: `Roughly how wide is your garage? (metres)`
+  - Placeholder: `e.g. 6`
+  - Hint: `Water pooling means we'll fit a strip grate at the garage to drain it. A rough garage width is fine — we'll confirm the exact size on site.`
 - Error: `Please answer the drainage question.`
 
 ---
@@ -180,23 +180,29 @@ Error messages:
 
 ## Step 9 — Your Estimate
 
+The inquiry is submitted automatically on arrival (no button). There are two
+variants depending on how the area was provided:
+
+**A. Dimensions entered (total / sections):**
 - Title: `Your Estimate`
 - Loading state: `Calculating…`
 - Estimate box:
   - Label: `Estimated Project Investment`
   - Amount: `{price}` (auto)
   - Fine print: `Subject to site review and final approval.`
-- Repayment box:
-  - Heading: `Repayment Options · HUM Finance`
-  - Line 1: `Pay over {n} fortnights ({weeks} weeks)`
-  - Big number: `{amount}/week`
-  - Line 3: `{amount} per fortnight`
-- "Important Notes" box (only if there are flags):
-  - Heading: `Important Notes`
-  - (flag wording is auto-generated — see next section)
-- Submit button: `Continue to HUM Finance →` (while sending: `Sending…`)
-- If submit fails: `Submission error: {message}`
-- Generic failure fallback: `Something went wrong. Please try again.`
+
+**B. Plans uploaded (no dimensions) — manual takeoff:**
+- Title: `Your Estimate`
+- Label: `Custom quote required`
+- Message: `Because you've uploaded plans, we'll do a takeoff from your drawings to work out an accurate driveway size — this part needs a person, not a calculator. Our team will review your plans and be in contact with your full estimate and the next steps.`
+
+**Status / next-steps message (both variants):**
+- While sending: `Sending your details…`
+- On success: `Thanks! We've received your details and will be in contact shortly about the next steps for your driveway.`
+- On error: `We couldn't send your details: {message}` + a `Try again` button
+
+_(The "Repayment Options · HUM Finance" box and the "Continue to HUM Finance"
+button have been removed from the calculator.)_
 
 ---
 

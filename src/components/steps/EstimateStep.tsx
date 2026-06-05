@@ -11,6 +11,12 @@ export function EstimateStep() {
   const [error, setError] = useState<string | null>(null);
   const sentRef = useRef(false);
 
+  // When the customer uploaded plans instead of entering dimensions there's no
+  // real area to price — we don't show an auto-calculated figure (it would just
+  // floor to the project minimum and mislead). Instead we tell them we'll do a
+  // manual takeoff from their drawings.
+  const isPlans = state.area.method === "plans";
+
   const areaSqm = useMemo(() => computeAreaSqm(state), [state]);
 
   const estimate = useMemo(() => {
@@ -63,7 +69,9 @@ export function EstimateStep() {
         : undefined,
     plans: state.plans,
     photos: state.photos,
-    estimate: estimate ?? undefined,
+    // No dollar estimate on the plans path — Luke does a takeoff from the
+    // drawings, and the email subject reads "measurements pending".
+    estimate: isPlans ? undefined : estimate ?? undefined,
   });
 
   const submit = async () => {
@@ -96,22 +104,23 @@ export function EstimateStep() {
     <div className="form-section">
       <h2>Your Estimate</h2>
 
-      <div className="estimate-amount">
-        <div className="label">Estimated Project Investment</div>
-        <div className="value tnum">{formatCurrency(estimate.finalIncGst)}</div>
-        <div className="fine">Subject to site review and final approval.</div>
-      </div>
-
-      <div className="repayment-box">
-        <h3>Repayment Options · HUM Finance</h3>
-        <div className="weekly tnum">
-          {formatCurrency(estimate.repayment.weekly)}/week
+      {isPlans ? (
+        <div className="estimate-amount">
+          <div className="label">Custom quote required</div>
+          <div className="plans-note">
+            Because you've uploaded plans, we'll do a takeoff from your drawings
+            to work out an accurate driveway size — this part needs a person, not
+            a calculator. Our team will review your plans and be in contact with
+            your full estimate and the next steps.
+          </div>
         </div>
-        <div className="repay-sub tnum">
-          {formatCurrency(estimate.repayment.fortnightly)}/fortnight ·{" "}
-          {estimate.repayment.fortnights} fortnights
+      ) : (
+        <div className="estimate-amount">
+          <div className="label">Estimated Project Investment</div>
+          <div className="value tnum">{formatCurrency(estimate.finalIncGst)}</div>
+          <div className="fine">Subject to site review and final approval.</div>
         </div>
-      </div>
+      )}
 
       <div className={`estimate-status estimate-status--${status}`}>
         {status === "sending" && "Sending your details…"}
