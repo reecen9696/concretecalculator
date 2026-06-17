@@ -531,55 +531,237 @@
     padding: 0 4px;
   }
 
-  /* Estimate display blocks */
-  .estimate-amount {
-    text-align: center;
-    padding: 14px;
+  /* ===========================================================================
+     Estimate page — final screen. Uses the same dark palette as the rest of the
+     form (only the existing colour tokens: --dark, --primary, --text-light,
+     --text-secondary, --border, --input-bg, --input-bg-hover, --danger).
+     ========================================================================= */
+  /* The final screen fills the viewport exactly — no scrolling in any
+     direction. The form-content scroll area is locked while it's shown. */
+  .form-content:has(.estimate-page) {
+    overflow: hidden;
+  }
+  .estimate-page {
+    height: 100%;
+    overflow: hidden;
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .estimate-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+  }
+
+  /* Round badge holding an outline icon (check / paper-plane) */
+  .estimate-badge {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: var(--input-bg-hover);
-    border-radius: 8px;
-    margin-bottom: 10px;
+    color: var(--text-light);
   }
-  .estimate-amount .label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin-bottom: 2px;
+  .estimate-badge--error {
+    color: var(--danger);
   }
-  .estimate-amount .value {
-    font-size: 28px;
-    font-weight: 700;
+
+  .estimate-hero {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .estimate-hero .estimate-badge {
+    margin: 0 auto 14px;
+  }
+  .estimate-title {
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -1px;
+    color: var(--text-light);
+    margin: 0;
+  }
+  .estimate-title span {
     color: var(--primary);
-    line-height: 1.15;
   }
-  .estimate-amount .fine {
-    font-size: 11px;
-    color: #888;
-    margin-top: 4px;
-    font-style: italic;
+  .estimate-subtitle {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin: 8px 0 0;
   }
-  /* Plans path — manual-takeoff message shown in place of a dollar figure. */
-  .estimate-amount .plans-note {
-    font-size: 13px;
-    line-height: 1.5;
+
+  /* Figures card */
+  .estimate-card {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px 22px;
+    text-align: center;
+  }
+  .estimate-card .repay-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .estimate-card .repay-amount {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+    line-height: 1;
+  }
+  .estimate-card .repay-value {
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    color: var(--primary);
+  }
+  .estimate-card .repay-unit {
+    font-size: 22px;
+    font-weight: 700;
     color: var(--text-light);
   }
 
-  /* Post-submit status / next-steps message on the estimate screen */
-  .estimate-status {
-    text-align: center;
+  /* "Over a 36-month term" pill */
+  .estimate-card .term-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: var(--input-bg-hover);
     font-size: 13px;
-    line-height: 1.5;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
     color: var(--text-secondary);
-    padding: 12px;
-    margin-top: 4px;
   }
-  .estimate-status--sent {
+  .estimate-card .term-pill svg {
     color: var(--text-light);
-    background: rgba(16, 185, 129, 0.12);
-    border: 1px solid var(--success);
-    border-radius: 6px;
+    flex: none;
   }
-  .estimate-status--error {
-    color: #ff6b6b;
+  .estimate-card .term-pill strong {
+    color: var(--text-light);
+    font-weight: 700;
+  }
+
+  .estimate-card .estimate-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 22px 0;
+  }
+
+  /* Demoted total — muted, sits quietly below the hero figure */
+  .estimate-card .total-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .estimate-card .total-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .estimate-card .total-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-light);
+    line-height: 1.2;
+  }
+  .estimate-card .estimate-fine {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text-secondary);
+    margin-top: 16px;
+  }
+  /* Plans path — manual-takeoff message shown in place of a dollar figure. */
+  .estimate-card .plans-note {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    text-align: left;
+  }
+
+  /* Thanks / status block */
+  .thanks-block {
+    text-align: center;
+    margin: 32px 0 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .thanks-block .estimate-badge {
+    margin-bottom: 14px;
+  }
+  .thanks-title {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--text-light);
+    margin: 0;
+  }
+  .thanks-rule {
+    width: 34px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--text-secondary);
+    margin: 12px 0 14px;
+  }
+  .thanks-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    max-width: 320px;
+    margin: 0;
+  }
+
+  /* Trust bar */
+  .trust-bar {
+    width: 100%;
+    margin-top: 26px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .trust-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 4px;
+    color: var(--text-light);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.25;
+    text-align: left;
+  }
+  .trust-item svg {
+    color: var(--text-light);
+    flex: none;
+  }
+  .trust-divider {
+    width: 1px;
+    align-self: stretch;
+    background: var(--border);
+    margin: 2px 0;
   }
 
   .review-flags {

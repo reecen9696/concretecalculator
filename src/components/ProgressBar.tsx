@@ -4,6 +4,9 @@ export function ProgressBar() {
   const step = useFormStore((s) => s.step);
   const idx = STEP_ORDER.indexOf(step);
   if (idx < 0) return null;
+  // The estimate is a terminal, full-bleed light screen — the dark progress bar
+  // doesn't belong over it.
+  if (step === "estimate") return null;
   // Progress maps over the input steps (first step → the last input step,
   // now "customer"), not the estimate. When the customer reaches that final
   // input step they've filled in everything, so the bar reads 100% there.

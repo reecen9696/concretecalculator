@@ -4,10 +4,31 @@ import { calculateEstimate, type Drainage } from "@/lib/pricing";
 import { formatCurrency } from "@/lib/format";
 import { submitInquiry } from "@/lib/submit";
 import type { SubmissionPayload } from "@/types/form";
+import {
+  CheckIcon,
+  CalendarIcon,
+  PaperPlaneIcon,
+  ShieldCheckIcon,
+  ClockIcon,
+  BadgeCheckIcon,
+} from "@/components/ui/icons";
+
+// -----------------------------------------------------------------------------
+// DESIGN PREVIEW MODE
+// While true, the estimate screen renders with hard-coded figures and skips the
+// auto-submit so the final page can be designed/viewed without filling the form
+// (the store also boots straight to this step — see INITIAL_FORM_STATE.step).
+// Set to false to restore the real, data-driven behaviour.
+// -----------------------------------------------------------------------------
+const PREVIEW = false;
+const PREVIEW_WEEKLY = 60.81;
+const PREVIEW_TOTAL = 9485.88;
 
 export function EstimateStep() {
   const state = useFormStore();
-  const [status, setStatus] = useState<"sending" | "sent" | "error">("sending");
+  const [status, setStatus] = useState<"sending" | "sent" | "error">(
+    PREVIEW ? "sent" : "sending",
+  );
   const [error, setError] = useState<string | null>(null);
   const sentRef = useRef(false);
 
@@ -88,61 +109,142 @@ export function EstimateStep() {
 
   // Send the inquiry automatically once the customer reaches the estimate —
   // there's no longer a "submit" button. The ref guards against the effect
-  // firing twice (React StrictMode in dev).
+  // firing twice (React StrictMode in dev). Skipped entirely in PREVIEW mode.
   useEffect(() => {
+    if (PREVIEW) return;
     if (sentRef.current) return;
     sentRef.current = true;
     void submit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!estimate) {
-    return <div className="form-section">Calculating…</div>;
+  // Figures to display: hard-coded in preview, otherwise from the live estimate.
+  const weekly = PREVIEW ? PREVIEW_WEEKLY : estimate?.repayment.weekly ?? 0;
+  const total = PREVIEW ? PREVIEW_TOTAL : estimate?.finalIncGst ?? 0;
+
+  if (!PREVIEW && !isPlans && !estimate) {
+    return <div className="estimate-page">Calculating…</div>;
   }
 
   return (
-    <div className="form-section">
-      <h2>Your Estimate</h2>
+    <div className="estimate-page">
+      <div className="estimate-body">
+        {/* Heading */}
+        <div className="estimate-hero">
+          <div className="estimate-badge estimate-badge--check">
+            <CheckIcon size={30} />
+          </div>
+          <h2 className="estimate-title">
+            Your <span>Estimate</span>
+          </h2>
+          <p className="estimate-subtitle">
+            {isPlans
+              ? "Here's what happens next"
+              : "Here's your estimated repayments"}
+          </p>
+        </div>
 
-      {isPlans ? (
-        <div className="estimate-amount">
-          <div className="label">Custom quote required</div>
-          <div className="plans-note">
-            Because you've uploaded plans, we'll do a takeoff from your drawings
-            to work out an accurate driveway size — this part needs a person, not
-            a calculator. Our team will review your plans and be in contact with
-            your full estimate and the next steps.
+        {/* Figures card */}
+        {isPlans ? (
+          <div className="estimate-card">
+            <div className="plans-note">
+              Because you've uploaded plans, we'll do a takeoff from your
+              drawings to work out an accurate driveway size — this part needs a
+              person, not a calculator. Our team will review your plans and be in
+              contact with your full estimate and the next steps.
+            </div>
+          </div>
+        ) : (
+          <div className="estimate-card">
+            <div className="repay-label">Estimated repayments from</div>
+            <div className="repay-amount">
+              <span className="repay-value tnum">{formatCurrency(weekly)}</span>
+              <span className="repay-unit">/week</span>
+            </div>
+
+            <div className="term-pill">
+              <CalendarIcon size={16} />
+              <span>
+                Over a <strong>36-month</strong> term
+              </span>
+            </div>
+
+            <div className="estimate-divider" />
+
+            <div className="total-row">
+              <div className="total-text">
+                <div className="total-label">Total project investment</div>
+                <div className="total-value tnum">{formatCurrency(total)}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation / status */}
+        <div className="thanks-block">
+          {status === "error" ? (
+            <>
+              <div className="estimate-badge estimate-badge--error">
+                <PaperPlaneIcon size={26} />
+              </div>
+              <h3 className="thanks-title">Something went wrong</h3>
+              <div className="thanks-rule" />
+              <p className="thanks-text">We couldn't send your details: {error}</p>
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ marginTop: 12 }}
+                onClick={submit}
+              >
+                Try again
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="estimate-badge estimate-badge--send">
+                <PaperPlaneIcon size={26} />
+              </div>
+              <h3 className="thanks-title">
+                {status === "sending" ? "Sending…" : "Thanks!"}
+              </h3>
+              <p className="thanks-text">
+                {status === "sending"
+                  ? "Sending your details…"
+                  : "We've received your details and will be in contact shortly about the next steps for your driveway."}
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* Trust bar */}
+        <div className="trust-bar">
+          <div className="trust-item">
+            <ShieldCheckIcon size={22} />
+            <span>
+              Interest-free
+              <br />
+              finance
+            </span>
+          </div>
+          <div className="trust-divider" />
+          <div className="trust-item">
+            <ClockIcon size={22} />
+            <span>
+              Instant online
+              <br />
+              settlement
+            </span>
+          </div>
+          <div className="trust-divider" />
+          <div className="trust-item">
+            <BadgeCheckIcon size={22} />
+            <span>
+              Premium
+              <br />
+              finish
+            </span>
           </div>
         </div>
-      ) : (
-        <div className="estimate-amount">
-          <div className="label">Estimated Project Investment</div>
-          <div className="value tnum">{formatCurrency(estimate.finalIncGst)}</div>
-          <div className="fine">Subject to site review and final approval.</div>
-        </div>
-      )}
-
-      <div className={`estimate-status estimate-status--${status}`}>
-        {status === "sending" && "Sending your details…"}
-        {status === "sent" && (
-          <>
-            Thanks! We've received your details and will be in contact shortly
-            about the next steps for your driveway.
-          </>
-        )}
-        {status === "error" && (
-          <>
-            <div>We couldn't send your details: {error}</div>
-            <button
-              type="button"
-              className="btn btn-primary"
-              style={{ marginTop: 10 }}
-              onClick={submit}
-            >
-              Try again
-            </button>
-          </>
-        )}
       </div>
     </div>
   );
