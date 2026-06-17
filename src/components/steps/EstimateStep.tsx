@@ -13,22 +13,9 @@ import {
   BadgeCheckIcon,
 } from "@/components/ui/icons";
 
-// -----------------------------------------------------------------------------
-// DESIGN PREVIEW MODE
-// While true, the estimate screen renders with hard-coded figures and skips the
-// auto-submit so the final page can be designed/viewed without filling the form
-// (the store also boots straight to this step — see INITIAL_FORM_STATE.step).
-// Set to false to restore the real, data-driven behaviour.
-// -----------------------------------------------------------------------------
-const PREVIEW = false;
-const PREVIEW_WEEKLY = 60.81;
-const PREVIEW_TOTAL = 9485.88;
-
 export function EstimateStep() {
   const state = useFormStore();
-  const [status, setStatus] = useState<"sending" | "sent" | "error">(
-    PREVIEW ? "sent" : "sending",
-  );
+  const [status, setStatus] = useState<"sending" | "sent" | "error">("sending");
   const [error, setError] = useState<string | null>(null);
   const sentRef = useRef(false);
 
@@ -109,20 +96,19 @@ export function EstimateStep() {
 
   // Send the inquiry automatically once the customer reaches the estimate —
   // there's no longer a "submit" button. The ref guards against the effect
-  // firing twice (React StrictMode in dev). Skipped entirely in PREVIEW mode.
+  // firing twice (React StrictMode in dev).
   useEffect(() => {
-    if (PREVIEW) return;
     if (sentRef.current) return;
     sentRef.current = true;
     void submit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Figures to display: hard-coded in preview, otherwise from the live estimate.
-  const weekly = PREVIEW ? PREVIEW_WEEKLY : estimate?.repayment.weekly ?? 0;
-  const total = PREVIEW ? PREVIEW_TOTAL : estimate?.finalIncGst ?? 0;
+  // Figures to display, from the live estimate.
+  const weekly = estimate?.repayment.weekly ?? 0;
+  const total = estimate?.finalIncGst ?? 0;
 
-  if (!PREVIEW && !isPlans && !estimate) {
+  if (!isPlans && !estimate) {
     return <div className="estimate-page">Calculating…</div>;
   }
 
