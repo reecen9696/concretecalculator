@@ -191,12 +191,12 @@ export function EstimateStep() {
                 <PaperPlaneIcon size={26} />
               </div>
               <h3 className="thanks-title">
-                {status === "sending" ? "Sending…" : "Thanks!"}
+                {status === "sending" ? "Sending…" : "We'll be in contact"}
               </h3>
               <p className="thanks-text">
                 {status === "sending"
                   ? "Sending your details…"
-                  : "We've received your details and will be in contact shortly about the next steps for your driveway."}
+                  : "We've got your details and will confirm your quote and next steps shortly."}
               </p>
             </>
           )}
