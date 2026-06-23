@@ -180,13 +180,10 @@ export function EstimateStep() {
             </>
           ) : (
             <>
-              <h3 className="thanks-title">
-                {status === "sending" ? "Sending…" : "We'll be in contact"}
-              </h3>
+              <h3 className="thanks-title">We'll be in contact!</h3>
               <p className="thanks-text">
-                {status === "sending"
-                  ? "Sending your details…"
-                  : "We've got your details and will confirm your quote and next steps shortly."}
+                We've got your details and will confirm your quote and next
+                steps shortly.
               </p>
             </>
           )}
