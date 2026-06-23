@@ -5,12 +5,8 @@ import { formatCurrency } from "@/lib/format";
 import { submitInquiry } from "@/lib/submit";
 import type { SubmissionPayload } from "@/types/form";
 import {
-  CheckIcon,
   CalendarIcon,
   PaperPlaneIcon,
-  ShieldCheckIcon,
-  ClockIcon,
-  BadgeCheckIcon,
 } from "@/components/ui/icons";
 
 export function EstimateStep() {
@@ -117,9 +113,6 @@ export function EstimateStep() {
       <div className="estimate-body">
         {/* Heading */}
         <div className="estimate-hero">
-          <div className="estimate-badge estimate-badge--check">
-            <CheckIcon size={30} />
-          </div>
           <h2 className="estimate-title">
             Your <span>Estimate</span>
           </h2>
@@ -187,9 +180,6 @@ export function EstimateStep() {
             </>
           ) : (
             <>
-              <div className="estimate-badge estimate-badge--send">
-                <PaperPlaneIcon size={26} />
-              </div>
               <h3 className="thanks-title">
                 {status === "sending" ? "Sending…" : "We'll be in contact"}
               </h3>
@@ -200,36 +190,6 @@ export function EstimateStep() {
               </p>
             </>
           )}
-        </div>
-
-        {/* Trust bar */}
-        <div className="trust-bar">
-          <div className="trust-item">
-            <ShieldCheckIcon size={22} />
-            <span>
-              Interest-free
-              <br />
-              finance
-            </span>
-          </div>
-          <div className="trust-divider" />
-          <div className="trust-item">
-            <ClockIcon size={22} />
-            <span>
-              Instant online
-              <br />
-              settlement
-            </span>
-          </div>
-          <div className="trust-divider" />
-          <div className="trust-item">
-            <BadgeCheckIcon size={22} />
-            <span>
-              Premium
-              <br />
-              finish
-            </span>
-          </div>
         </div>
       </div>
     </div>

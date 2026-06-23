@@ -581,7 +581,7 @@
     margin: 0 auto 14px;
   }
   .estimate-title {
-    font-size: 40px;
+    font-size: 32px;
     font-weight: 800;
     line-height: 1.05;
     letter-spacing: -1px;
@@ -622,13 +622,13 @@
     line-height: 1;
   }
   .estimate-card .repay-value {
-    font-size: 56px;
+    font-size: 44px;
     font-weight: 800;
     letter-spacing: -2px;
     color: var(--primary);
   }
   .estimate-card .repay-unit {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--text-light);
   }
@@ -639,10 +639,10 @@
     align-items: center;
     gap: 8px;
     margin-top: 16px;
-    padding: 10px 18px;
+    padding: 8px 16px;
     border-radius: 10px;
     background: var(--input-bg-hover);
-    font-size: 13px;
+    font-size: 11px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
     color: var(--text-secondary);
@@ -659,7 +659,7 @@
   .estimate-card .estimate-divider {
     height: 1px;
     background: var(--border);
-    margin: 22px 0;
+    margin: 14px 0;
   }
 
   /* Demoted total — muted, sits quietly below the hero figure */
@@ -708,9 +708,9 @@
     margin-bottom: 14px;
   }
   .thanks-title {
-    font-size: 30px;
+    font-size: 20px;
     font-weight: 800;
-    color: var(--text-light);
+    color: var(--primary);
     margin: 0;
   }
   .thanks-rule {
