@@ -5,7 +5,7 @@
  * builds the typed payload and forwards it.
  */
 
-import type { SubmissionPayload } from "@/types/form";
+import type { CustomerDetails, SubmissionPayload } from "@/types/form";
 
 export interface SubmitSuccess {
   success: true;
@@ -15,6 +15,31 @@ export interface SubmitFailure {
   error: string;
 }
 export type SubmitResult = SubmitSuccess | SubmitFailure;
+
+/**
+ * Fire-and-forget "incomplete lead" alert, sent once the customer completes
+ * the first page (contact details). Guarded so it only fires once per page
+ * load — going back/forward through the form won't re-send. `keepalive` lets
+ * the request finish even if the user navigates away (the drop-off case).
+ */
+let partialLeadSent = false;
+export function submitPartialLead(customer: CustomerDetails): void {
+  if (partialLeadSent) return;
+  partialLeadSent = true;
+  void fetch("/api/partial-lead", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      customer,
+      sourceUrl:
+        typeof window !== "undefined" ? window.location.href : undefined,
+    }),
+    keepalive: true,
+  }).catch(() => {
+    // Allow a later retry if this best-effort send failed.
+    partialLeadSent = false;
+  });
+}
 
 export async function submitInquiry(
   payload: SubmissionPayload,

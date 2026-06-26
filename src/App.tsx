@@ -7,6 +7,7 @@ import {
 } from "@/state/useFormStore";
 import { Shell } from "@/components/Shell";
 import { ProgressBar } from "@/components/ProgressBar";
+import { submitPartialLead } from "@/lib/submit";
 import { CustomerDetailsStep } from "@/components/steps/CustomerDetailsStep";
 import { AreaStep } from "@/components/steps/AreaStep";
 import { AreaDetailStep } from "@/components/steps/AreaDetailStep";
@@ -35,6 +36,12 @@ export default function App() {
       return;
     }
     setErrors({});
+    // First page done — fire the "incomplete lead" alert as a safety net in
+    // case they drop off before finishing. Fire-and-forget; guarded to send
+    // at most once per page load.
+    if (state.step === "customer") {
+      submitPartialLead(state.customer);
+    }
     state.next();
   };
   const handleBack = () => {

@@ -129,6 +129,44 @@ export function buildLukeInquiryEmail(payload: ValidatedPayload): string {
   );
 }
 
+// =============================================================================
+// Partial-lead alert — first page only (customer dropped off before finishing)
+// =============================================================================
+
+export function buildPartialLeadEmail(
+  customer: { name: string; phone: string; email: string; suburb: string },
+  sourceUrl?: string,
+): string {
+  return wrap(
+    `New Lead — First Page Only`,
+    `
+    <div class="section">
+      <p style="background:${C.orangeSoft};padding:12px;border-left:4px solid ${C.orange};margin:0 0 16px 0;">
+        <strong>⚠️ This customer entered their contact details but has not
+        completed the full quote yet.</strong><br/>
+        Worth reaching out in case they drop off. If they finish, the full
+        estimate email will follow separately.
+      </p>
+      <h3>Customer Details</h3>
+      <table class="kv">
+        <tr><td class="lbl">Name:</td><td>${escapeHtml(customer.name)}</td></tr>
+        <tr><td class="lbl">Phone:</td><td><a href="tel:${escapeHtml(customer.phone)}">${escapeHtml(customer.phone)}</a></td></tr>
+        <tr><td class="lbl">Email:</td><td><a href="mailto:${escapeHtml(customer.email)}">${escapeHtml(customer.email)}</a></td></tr>
+        <tr><td class="lbl">Suburb/Postcode:</td><td>${escapeHtml(customer.suburb)}</td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <p style="color:${C.mute};font-size:12px;">
+        Captured by the Smooth Concrete calculator at ${timestamp()}${sourceUrl ? ` from ${escapeHtml(sourceUrl)}` : ""}.<br/>
+        Reply directly to this email to reach the customer
+        (${escapeHtml(customer.email)}).
+      </p>
+    </div>
+    `,
+  );
+}
+
 function buildAttachmentsSection(
   plans: { url: string; filename: string; contentType: string; size: number }[],
   photos: { url: string; filename: string; contentType: string; size: number }[],
