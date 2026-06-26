@@ -120,6 +120,14 @@ export type ValidatedPayload = z.infer<typeof payloadSchema>;
 const SENDER_EMAIL = process.env.SENDER_EMAIL || "onboarding@resend.dev";
 const INQUIRY_RECIPIENT =
   process.env.INQUIRY_RECIPIENT_EMAIL || "luke@smoothconcrete.com.au";
+// Additional recipients CC'd on every inquiry (comma-separated env override,
+// otherwise the Uprise Digital contact by default).
+const CC_RECIPIENTS = (
+  process.env.INQUIRY_CC_EMAILS || "thejana@uprisedigital.com.au"
+)
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 export default async function handler(
   req: VercelRequest,
@@ -159,6 +167,7 @@ export default async function handler(
     await sendEmail(apiKey, {
       from: SENDER_EMAIL,
       to: INQUIRY_RECIPIENT,
+      cc: CC_RECIPIENTS,
       replyTo: payload.customer.email,
       subject: buildEligibleSubject(payload),
       html: buildLukeInquiryEmail(payload),
@@ -179,6 +188,7 @@ export default async function handler(
 interface EmailArgs {
   from: string;
   to: string;
+  cc?: string[];
   replyTo?: string;
   subject: string;
   html: string;
@@ -189,6 +199,7 @@ async function sendEmail(apiKey: string | undefined, args: EmailArgs) {
     // Local dev stub. No key → log and pretend it worked.
     console.log("[/api/submit] (no RESEND_API_KEY — stub mode)");
     console.log("  to:", args.to);
+    if (args.cc?.length) console.log("  cc:", args.cc.join(", "));
     console.log("  subject:", args.subject);
     return;
   }
@@ -196,6 +207,7 @@ async function sendEmail(apiKey: string | undefined, args: EmailArgs) {
   const result = await resend.emails.send({
     from: args.from,
     to: [args.to],
+    cc: args.cc?.length ? args.cc : undefined,
     replyTo: args.replyTo,
     subject: args.subject,
     html: args.html,
