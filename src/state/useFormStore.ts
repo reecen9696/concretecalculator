@@ -192,8 +192,8 @@ export function validateStep(state: FormState): StepValidation {
         errors.drainage = "Please answer the drainage question.";
       break;
     case "photos":
-      if (state.photos.length === 0)
-        errors.photos = "Upload at least one photo.";
+      // Photos are optional — strongly encouraged in the UI copy, but never
+      // required to proceed to the estimate.
       break;
   }
 

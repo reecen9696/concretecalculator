@@ -9,7 +9,10 @@ export function PhotosStep({ errors }: { errors: StepErrors }) {
     <div className="form-section">
       <h2>Project Photos</h2>
       <div className="form-group">
-        <label className="step-question">Upload at least one photo</label>
+        <label className="step-question">
+          Photos help us give you a more accurate quote — would you like to add
+          some? <span className="step-optional">(optional)</span>
+        </label>
         <FileUpload
           kind="photos"
           files={photos}
